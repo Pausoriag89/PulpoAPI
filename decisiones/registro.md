@@ -1,0 +1,26 @@
+# Registro de decisiones
+
+> Toda decisión congelada lleva su razón. La razón es lo que sobrevive al olvido. Estados: CONGELADA · DEFAULT (adoptada sin objeción, reversible con costo bajo) · PROPUESTA (recomendada, pendiente de Pablo) · ABIERTA · DIFERIDA.
+
+| # | Fecha | Decisión | Razón | Estado |
+|---|---|---|---|---|
+| D01 | 2026-08 | Cero efectivo/valores; pagos solo por canal digital de la plataforma | Art. 81-A Bis LGOAAC: transmisión de dinero sin registro = 3–15 años prisión; se dispara por actividad, no por monto | CONGELADA |
+| D02 | 2026-08 | Enfoque 100% en el espacio de agentes como identidad de producto; demanda humana como proxy/simulador durante la ventana | Iterar 18 meses sin señal real = especificación especulativa; la operación es idéntica sea quien sea el invocador; la superficie de invocación es la capa barata | CONGELADA |
+| D03 | 2026-08 | Allowlist determinista; el LLM enruta, nunca autoriza | El vigía come el input más hostil; blacklist = espacio infinito donde hay que ganar siempre; la garantía solo se precifica sobre espacio finito | CONGELADA |
+| D04 | 2026-08 | Cadena de autoridad: mandato del principal humano, alcance enumerado, topes; el agente es solo canal de instrucción | La IA no tiene personalidad jurídica; sin mandato es usurpación de representación; el registro de mandatos es el activo legal central | CONGELADA |
+| D05 | 2026-08 | Garantía de ejecución propia con tope; jamás prima separada; daño consecuencial a aseguradora tercera con datos | Frontera LISF (seguro/fianza requiere autorización); frontera actuarial (put desnudo sobre distribución desconocida) | CONGELADA |
+| D06 | 2026-08 | Plataforma como mandataria que subcontrata ejecución (no intermediario neutral) | Único esquema donde la garantía no es fianza; vigía determinista (alcance vs tabla); el riesgo se concentra donde se controla; es lo que un cliente serio compra | DEFAULT |
+| D07 | 2026-08 | Secuencia: operación instrumentada primero; API/MCP latente; encendido en Fase 2 | RentAHuman (API sin operación) = directorio vacío; HumanInLoop (operación con API) = único con ejecución real | CONGELADA |
+| D08 | 2026-08 | Domum como primer agente comandante; activos propios como Fase 0 | Demanda cautiva, cero ciclo de venta, cero visibilidad, itera el protocolo con tareas reales; el protocolo queda agnóstico (Domum cliente, nunca dueño del contrato) | CONGELADA |
+| D09 | 2026-08 | Catálogo cerrado de 6 primitivas; verticales = configuraciones; primitiva nueva = decisión de framework explícita | Siniestralidad densa por primitiva; SOPs entrenables; superficie API estable; sin esto la allowlist degenera en blacklist | CONGELADA |
+| D10 | 2026-08 | Verticales antes que geografía; celda nueva solo por saturación (>70% util. 2 meses) | La economía de escala vive en el multiplexeo de la celda, no en la cobertura | CONGELADA |
+| D11 | 2026-08 | Región operativa v1: sin oficios licenciados, sin actos de fe pública, sin urgente <2h, sin cadena fría; licenciados = partners | Cruzar D4 (especialización) hereda responsabilidad de oficios ajenos; fe pública es monopolio legal | CONGELADA |
+| D12 | 2026-08 | Vertical externo #1: despachos legales (STR como extensión) | Fragmentado (compatible con invisibilidad 2028), paga hoy, endurece P2/P6 que los verticales regulados comprarán, fuerza el patrón partner temprano | PROPUESTA |
+| D13 | 2026-08 | Telemetría estructurada por default; video crudo solo por elevación con consentimiento; interiores solo con elevación del principal | Privacidad (LFPDPPP, terceros en cuadro) + el corpus solo es vendible con derechos limpios | CONGELADA |
+| D14 | 2026-08 | Contrato actuator-agnostic (interfaz Actuador; humano = driver v1) | La migración a RoboLaborForce debe ser cambio de driver, no refundación | CONGELADA |
+| D15 | 2026-08 | Moat de datos = fundición especificada (SOP como spec, etiquetado denso, diversidad LatAm, derechos limpios), NO horas crudas de video | El video egocéntrico crudo es glut a $2–5/hr, bajo costo de producción; lo curado y especificado paga ~100x | CONGELADA |
+| D16 | 2026-08 | Prioridad: servicio > proceso > dato; el dato es opción de convexidad, no ingreso base de la ventana 0–18m | Vender el dato traicionando la operación mata la fuente del dato | CONGELADA |
+| D17 | 2026-08 | Ejecutores semi-fijos (prestadores con RFC, retainer+variable), no gig puro | Reforma LFT plataformas eliminó el arbitraje; la rotación gig destruye el activo de entrenamiento | DEFAULT (sujeta a opinión laboral antes de M6) |
+| D18 | 2026-08 | Lanzamiento visible, enterprise y levantamiento de capital en Fase 3 (2028) | Restricción R7 (BBVA) + levantar con 24 meses de siniestralidad y corpus vale multiplos más | CONGELADA |
+| D19 | 2026-08 | Estructura accionaria definitiva (público/CCE/AC) | Se decide en Fase 3 desde la fuerza; propuesta original 20/20/20/40 analizada y objetada en `docs/09` | ABIERTA |
+| D20 | 2026-08 | App del ejecutor (PWA vs nativa), pricing agéntico, segunda celda, vertical #3 definitivo | Mejoran con datos de Fase 0–1; fijarlos hoy es decidir peor | DIFERIDA |
