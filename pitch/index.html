@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark" data-nivel="4" data-aud="inversionista">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PULPO — capa de actuación física para agentes de IA</title>
+<meta name="description" content="API que permite a un agente de IA ejecutar acciones físicas verificables en el mundo real a través de humanos despachados, con evidencia estructurada, garantía por acción y trazabilidad total.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐙%3C/text%3E%3C/svg%3E">
+<script>
+/* Aplica preferencias guardadas ANTES del primer paint (sin flash).
+   Sin JS: data-nivel="4" deja el documento completo legible. */
+(function () {
+  var d = document.documentElement;
+  try {
+    var t = localStorage.getItem('pulpo.tema');
+    var n = localStorage.getItem('pulpo.nivel');
+    var a = localStorage.getItem('pulpo.aud');
+    var e = localStorage.getItem('pulpo.escala');
+    d.setAttribute('data-theme', (t === 'light' || t === 'dark') ? t : 'dark');
+    d.setAttribute('data-nivel', /^[1-4]$/.test(n) ? n : '1');
+    d.setAttribute('data-aud', (a === 'inversionista' || a === 'cliente' || a === 'partner') ? a : 'inversionista');
+    var esc = parseFloat(e);
+    if (esc >= 0.75 && esc <= 1.25) d.style.fontSize = (16 * esc) + 'px';
+  } catch (err) { d.setAttribute('data-nivel', '1'); }
+})();
+</script>
+<style>
+/* ============================================================
+   PULPO(1) — Manual del Operador · estética: terminal puro
+   Un solo archivo. Cero dependencias. Dark por default.
+   ============================================================ */
+:root {
+  --bg: #0A0F0C;
+  --bg2: #0E1511;
+  --bg3: #131B16;
+  --line: #1E2A22;
+  --line2: #2C3D31;
+  --text: #C6D2C2;
+  --muted: #82967E;
+  --faint: #5A6A54;
+  --fos: #6FD087;
+  --fos-dim: #3E7A50;
+  --fos-glow: rgba(111, 208, 135, 0.07);
+  --amber: #E2B25C;
+  --red: #E0685A;
+  --s1: #3987e5;  /* inmobiliario */
+  --s2: #d95926;  /* legal */
+  --s3: #199e70;  /* retail */
+  --s4: #c98500;  /* otros */
+  --shadow: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #F5F2E9;
+  --bg2: #FBF9F1;
+  --bg3: #EDE8DA;
+  --line: #DCD6C2;
+  --line2: #C6BFA8;
+  --text: #333B31;
+  --muted: #6E7A69;
+  --faint: #97A290;
+  --fos: #1B7A3D;
+  --fos-dim: #63A87E;
+  --fos-glow: rgba(27, 122, 61, 0.05);
+  --amber: #8A5E00;
+  --red: #B3402F;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --s4: #eda100;
+  --shadow: rgba(60, 50, 20, 0.12);
+  color-scheme: light;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+/* scanlines sutiles — solo dark */
+:root[data-theme="dark"] body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 3px);
+  pointer-events: none; z-index: 2;
+}
+::selection { background: var(--fos-dim); color: var(--bg); }
+
+a { color: var(--fos); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--fos-dim); }
+a:hover { text-decoration-color: var(--fos); }
+
+/* ---------- barra sticky: la línea de comando ---------- */
+.bar {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  padding: 0.5rem clamp(0.75rem, 3vw, 1.5rem);
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.4rem 1.1rem;
+  font-size: 0.8rem;
+}
+.bar .brand {
+  color: var(--fos); font-weight: 700; letter-spacing: 0.04em;
+  white-space: nowrap; margin-right: 0.2rem;
+}
+.bar .brand small { color: var(--faint); font-weight: 400; }
+.flagset { display: flex; align-items: center; gap: 0.15rem; flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.flagset::-webkit-scrollbar { display: none; }
+.flagset .flagname { color: var(--faint); white-space: nowrap; margin-right: 0.1rem; }
+.flag {
+  font: inherit; font-size: 0.8rem;
+  background: none; border: 1px solid transparent; border-radius: 3px;
+  color: var(--muted); padding: 0.12rem 0.5rem; cursor: pointer;
+  white-space: nowrap;
+}
+.flag:hover { color: var(--text); border-color: var(--line2); }
+.flag[aria-checked="true"] {
+  color: var(--bg); background: var(--fos); border-color: var(--fos); font-weight: 700;
+}
+.flag:focus-visible, button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--fos); outline-offset: 2px;
+}
+.bar .tools { margin-left: auto; display: flex; align-items: center; gap: 0.8rem; }
+.aa { display: flex; align-items: center; gap: 0.35rem; color: var(--faint); }
+.aa input[type="range"] { width: 74px; accent-color: var(--fos); cursor: pointer; }
+.themebtn {
+  font: inherit; font-size: 0.8rem; cursor: pointer;
+  background: none; border: 1px solid var(--line2); border-radius: 3px;
+  color: var(--muted); padding: 0.12rem 0.55rem; white-space: nowrap;
+}
+.themebtn:hover { color: var(--text); border-color: var(--fos-dim); }
+
+/* ---------- layout ---------- */
+.page { max-width: 60rem; margin: 0 auto; padding: 0 clamp(0.9rem, 4vw, 2rem) 4rem; position: relative; z-index: 1; }
+.manhead {
+  display: flex; justify-content: space-between; gap: 1rem;
+  color: var(--faint); font-size: 0.72rem; letter-spacing: 0.06em;
+  padding: 1.1rem 0 0;
+}
+.manhead span:nth-child(2) { text-align: center; }
+
+/* ---------- revelado por niveles ---------- */
+[data-nivel-min] { display: none; }
+html[data-nivel="1"] [data-nivel-min="1"],
+html[data-nivel="2"] [data-nivel-min="1"], html[data-nivel="2"] [data-nivel-min="2"],
+html[data-nivel="3"] [data-nivel-min="1"], html[data-nivel="3"] [data-nivel-min="2"], html[data-nivel="3"] [data-nivel-min="3"],
+html[data-nivel="4"] [data-nivel-min] { display: block; }
+
+/* ---------- audiencias ---------- */
+[data-solo-aud] { display: none; }
+html[data-aud="inversionista"] [data-solo-aud="inversionista"],
+html[data-aud="cliente"] [data-solo-aud="cliente"],
+html[data-aud="partner"] [data-solo-aud="partner"] { display: block; }
+.aud-note {
+  border: 1px dashed var(--fos-dim); border-radius: 4px;
+  background: var(--fos-glow);
+  padding: 0.7rem 0.9rem; margin: 1.1rem 0; font-size: 0.88rem;
+}
+.aud-note .tag { color: var(--fos); font-weight: 700; }
+
+/* ---------- hero ---------- */
+.hero { padding: clamp(1.5rem, 5vh, 3.2rem) 0 0.5rem; position: relative; }
+.hero::before {
+  content: ""; position: absolute; inset: -4rem 0 auto;
+  height: 22rem; pointer-events: none;
+  background: radial-gradient(ellipse 75% 55% at 50% 20%, var(--fos-glow), transparent 70%);
+}
+.term {
+  border: 1px solid var(--line2); border-radius: 6px;
+  background: var(--bg2);
+  box-shadow: 0 12px 40px -18px var(--shadow);
+  overflow: hidden; position: relative;
+}
+.term-title {
+  border-bottom: 1px solid var(--line);
+  color: var(--faint); font-size: 0.72rem; letter-spacing: 0.08em;
+  padding: 0.42rem 0.9rem;
+  display: flex; justify-content: space-between; gap: 1rem;
+}
+.term-body { padding: clamp(1rem, 3vw, 1.8rem) clamp(0.9rem, 3.5vw, 1.8rem); }
+.prompt { color: var(--fos); }
+.typed { color: var(--text); }
+.cursor {
+  display: inline-block; width: 0.55em; height: 1.05em;
+  background: var(--fos); vertical-align: text-bottom; margin-left: 2px;
+  animation: blink 1.06s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+
+.oneliner {
+  margin: 1.1rem 0 0;
+  font-size: clamp(1.22rem, 3.4vw, 1.85rem);
+  line-height: 1.45; font-weight: 700; color: var(--text);
+  text-wrap: balance;
+}
+.oneliner em { font-style: normal; color: var(--fos); }
+.oneliner .amber { color: var(--amber); }
+.hero-sub { margin-top: 1rem; color: var(--muted); font-size: 0.92rem; max-width: 52rem; }
+.hero-sub .tag { color: var(--fos); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 1.4rem; }
+.chip {
+  font: inherit; font-size: 0.82rem; cursor: pointer;
+  border: 1px solid var(--line2); border-radius: 4px;
+  background: var(--bg3); color: var(--fos);
+  padding: 0.28rem 0.6rem; position: relative;
+}
+.chip:hover { border-color: var(--fos); }
+.chip::after {
+  content: attr(data-tip);
+  position: absolute; left: 0; bottom: calc(100% + 6px);
+  background: var(--bg3); color: var(--text);
+  border: 1px solid var(--line2); border-radius: 4px;
+  font-size: 0.75rem; line-height: 1.4; padding: 0.35rem 0.55rem;
+  width: max-content; max-width: 240px; white-space: normal;
+  opacity: 0; pointer-events: none; transition: opacity 0.12s;
+  z-index: 5;
+}
+.chip:hover::after, .chip:focus-visible::after { opacity: 1; }
+.statusline { margin-top: 1.35rem; color: var(--faint); font-size: 0.78rem; }
+.statusline b { color: var(--amber); font-weight: 400; }
+
+/* ---------- avance de nivel ---------- */
+.deeper { margin: 1.6rem 0 0.4rem; }
+.deeper button {
+  font: inherit; font-size: 0.88rem; cursor: pointer;
+  background: none; border: 1px solid var(--line2); border-radius: 4px;
+  color: var(--text); padding: 0.5rem 0.85rem; text-align: left;
+  width: 100%; transition: border-color 0.12s, background 0.12s;
+}
+.deeper button:hover { border-color: var(--fos); background: var(--fos-glow); }
+.deeper .prompt { margin-right: 0.4rem; }
+.deeper .comment { color: var(--faint); }
+html[data-nivel="4"] .deeper { display: none; }
+html[data-nivel="1"] .deeper[data-when="2"], html[data-nivel="1"] .deeper[data-when="3"] { display: none; }
+html[data-nivel="2"] .deeper[data-when="1"], html[data-nivel="2"] .deeper[data-when="3"] { display: none; }
+html[data-nivel="3"] .deeper[data-when="1"], html[data-nivel="3"] .deeper[data-when="2"] { display: none; }
+
+/* ---------- secciones man ---------- */
+section { margin-top: 2.6rem; }
+.sec-h {
+  display: flex; align-items: baseline; gap: 0.7rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.45rem; margin-bottom: 1.05rem;
+}
+.sec-h .num { color: var(--faint); font-size: 0.8rem; }
+.sec-h h2 {
+  font-size: 1rem; letter-spacing: 0.12em; font-weight: 700;
+  color: var(--fos); text-transform: uppercase;
+}
+.sec-h .src { margin-left: auto; color: var(--faint); font-size: 0.72rem; white-space: nowrap; }
+h3 { font-size: 0.9rem; letter-spacing: 0.08em; color: var(--amber); margin: 1.5rem 0 0.55rem; text-transform: uppercase; }
+p { margin: 0.7rem 0; max-width: 56rem; }
+p + p { margin-top: 0.85rem; }
+b, strong { color: var(--text); }
+.k { color: var(--fos); }      /* keyword / énfasis verde */
+.n { color: var(--amber); }    /* números / datos */
+.comment { color: var(--faint); }
+.hecho, .opinion {
+  display: inline-block; font-size: 0.7rem; letter-spacing: 0.08em;
+  padding: 0 0.35rem; border-radius: 3px; vertical-align: 0.1em; margin-right: 0.35rem;
+}
+.hecho { color: var(--fos); border: 1px solid var(--fos-dim); }
+.opinion { color: var(--amber); border: 1px solid var(--amber); opacity: 0.85; }
+
+ul.man, ol.man { list-style: none; margin: 0.6rem 0; }
+ul.man li, ol.man li { padding-left: 1.4rem; position: relative; margin: 0.5rem 0; max-width: 56rem; }
+ul.man li::before { content: ">"; position: absolute; left: 0; color: var(--fos); }
+ul.man.red li::before { content: "✗"; color: var(--red); }
+ul.man.ok li::before { content: "✓"; color: var(--fos); }
+ol.man { counter-reset: mi; }
+ol.man li::before {
+  counter-increment: mi; content: counter(mi, decimal-leading-zero);
+  position: absolute; left: 0; color: var(--amber); font-size: 0.8rem; top: 0.15em;
+}
+ol.man li { padding-left: 2rem; }
+
+/* bloque de código / trace */
+.code {
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 5px;
+  padding: 0.9rem 1.1rem; margin: 1rem 0; overflow-x: auto;
+  font-size: 0.85rem; line-height: 1.65; white-space: pre;
+}
+.code .err { color: var(--red); }
+.code .ok { color: var(--fos); }
+.code .dim { color: var(--faint); }
+.code .amber { color: var(--amber); }
+.callout {
+  border-left: 3px solid var(--amber); background: var(--bg2);
+  padding: 0.75rem 1rem; margin: 1rem 0; max-width: 56rem; font-size: 0.9rem;
+}
+.callout.red { border-left-color: var(--red); }
+.callout.green { border-left-color: var(--fos); }
+
+/* tablas */
+.twrap { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--line); border-radius: 5px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; min-width: 540px; }
+th, td { text-align: left; padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--fos); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--bg2); }
+tr:last-child td { border-bottom: none; }
+td .n { white-space: nowrap; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.7rem; margin: 1.1rem 0; }
+.stat {
+  border: 1px solid var(--line); border-radius: 5px; background: var(--bg2);
+  padding: 0.8rem 0.9rem;
+}
+.stat .v { font-size: 1.45rem; font-weight: 700; color: var(--amber); line-height: 1.2; }
+.stat .l { color: var(--muted); font-size: 0.75rem; margin-top: 0.3rem; line-height: 1.45; }
+
+/* jugadores 2026 */
+.players { display: grid; gap: 0.7rem; margin: 1rem 0; }
+.player { border: 1px solid var(--line); border-radius: 5px; background: var(--bg2); padding: 0.8rem 1rem; font-size: 0.88rem; }
+.player .ph { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: baseline; }
+.player .ph b { color: var(--text); }
+.player .verdict { margin-left: auto; font-size: 0.72rem; letter-spacing: 0.06em; }
+.player .verdict.bad { color: var(--red); }
+.player .verdict.mid { color: var(--amber); }
+.player p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.85rem; }
+
+/* primitivas man-entries */
+.prim { border: 1px solid var(--line); border-radius: 5px; background: var(--bg2); margin: 0.9rem 0; overflow: hidden; }
+.prim-h {
+  padding: 0.65rem 1rem; background: var(--bg3); border-bottom: 1px solid var(--line);
+  font-size: 0.9rem; overflow-x: auto; white-space: nowrap;
+}
+.prim-h .pid { color: var(--faint); margin-right: 0.6rem; }
+.prim-h .fn { color: var(--fos); font-weight: 700; }
+.prim-h .args { color: var(--muted); }
+.prim-b { padding: 0.75rem 1rem 0.9rem; font-size: 0.86rem; }
+.prim-b .fld { display: grid; grid-template-columns: 9.5rem 1fr; gap: 0.5rem; padding: 0.28rem 0; }
+.prim-b .fld > span:first-child { color: var(--faint); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding-top: 0.15em; }
+.prim-b .fld.warn > span:last-child { color: var(--red); }
+@media (max-width: 620px) { .prim-b .fld { grid-template-columns: 1fr; gap: 0.1rem; } .prim-b .fld > span:first-child { padding-top: 0.3em; } }
+
+/* pipeline de estados */
+.pipe { display: flex; flex-wrap: wrap; gap: 0.3rem 0; align-items: center; margin: 1rem 0; font-size: 0.82rem; }
+.pipe .st { border: 1px solid var(--line2); border-radius: 3px; padding: 0.15rem 0.5rem; background: var(--bg2); color: var(--text); white-space: nowrap; }
+.pipe .st.final { border-color: var(--fos-dim); color: var(--fos); }
+.pipe .st.fail { border-color: var(--red); color: var(--red); }
+.pipe .arr { color: var(--faint); padding: 0 0.35rem; }
+
+/* terminal de protocolo con playback */
+.session { position: relative; }
+.session .code { min-height: 17.5rem; margin-bottom: 0.4rem; }
+.session .line { display: block; }
+.session[data-anim="on"] .line { visibility: hidden; }
+.session[data-anim="on"] .line.on { visibility: visible; }
+.replay {
+  font: inherit; font-size: 0.78rem; cursor: pointer;
+  background: none; border: 1px solid var(--line2); border-radius: 3px;
+  color: var(--muted); padding: 0.15rem 0.6rem;
+}
+.replay:hover { color: var(--fos); border-color: var(--fos-dim); }
+
+/* chart */
+.viz {
+  border: 1px solid var(--line); border-radius: 5px; background: var(--bg2);
+  padding: 1rem 1rem 0.6rem; margin: 1rem 0; position: relative;
+}
+.viz .viz-title { font-size: 0.85rem; color: var(--text); font-weight: 700; }
+.viz .viz-sub { font-size: 0.75rem; color: var(--faint); margin-bottom: 0.6rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font-size: 0.78rem; color: var(--muted); margin: 0.4rem 0 0.5rem; }
+.legend .li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.legend .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.chartwrap { position: relative; overflow-x: auto; }
+.chartwrap svg { display: block; width: 100%; height: auto; min-width: 520px; }
+.tip {
+  position: absolute; pointer-events: none; z-index: 6;
+  background: var(--bg3); border: 1px solid var(--line2); border-radius: 4px;
+  font-size: 0.75rem; line-height: 1.5; padding: 0.45rem 0.6rem;
+  box-shadow: 0 6px 18px -8px var(--shadow);
+  opacity: 0; transition: opacity 0.1s; white-space: nowrap;
+}
+.tip .row { display: flex; align-items: center; gap: 0.4rem; }
+.tip .sw { width: 8px; height: 8px; border-radius: 2px; }
+details.tableview { margin: 0.6rem 0 0.3rem; font-size: 0.82rem; }
+details.tableview summary { cursor: pointer; color: var(--muted); }
+details.tableview summary:hover { color: var(--fos); }
+.range2 { display: grid; gap: 0.55rem; margin: 1rem 0; max-width: 40rem; }
+.rrow { display: grid; grid-template-columns: 11.5rem 1fr 5.2rem; align-items: center; gap: 0.7rem; font-size: 0.82rem; }
+.rrow .lab { color: var(--muted); text-align: right; }
+.rrow .track { height: 14px; background: var(--bg3); border: 1px solid var(--line); border-radius: 3px; position: relative; }
+.rrow .fill { position: absolute; top: 2px; bottom: 2px; border-radius: 2px; }
+.rrow .val { color: var(--amber); }
+@media (max-width: 560px) { .rrow { grid-template-columns: 1fr; gap: 0.2rem; } .rrow .lab { text-align: left; } }
+
+/* capas por robustez */
+.layers { display: grid; gap: 0.8rem; margin: 1rem 0; }
+.layer { border: 1px solid var(--line); border-left-width: 3px; border-radius: 5px; background: var(--bg2); padding: 0.75rem 1rem; font-size: 0.87rem; }
+.layer.core { border-left-color: var(--fos); }
+.layer.fragile { border-left-color: var(--amber); }
+.layer.gated { border-left-color: var(--red); }
+.layer h4 { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+.layer.core h4 { color: var(--fos); } .layer.fragile h4 { color: var(--amber); } .layer.gated h4 { color: var(--red); }
+.layer ul { list-style: none; }
+.layer li { padding-left: 1.1rem; position: relative; margin: 0.28rem 0; color: var(--muted); }
+.layer li::before { content: "·"; position: absolute; left: 0.2rem; color: var(--faint); }
+.layer li b { color: var(--text); font-weight: 400; }
+
+/* fases / ruta crítica */
+.fases { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.8rem; margin: 1.1rem 0; }
+.fase { border: 1px solid var(--line); border-radius: 5px; background: var(--bg2); padding: 0.85rem 1rem; font-size: 0.85rem; display: flex; flex-direction: column; }
+.fase .fh { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.45rem; margin-bottom: 0.55rem; }
+.fase .fh b { color: var(--fos); }
+.fase .fh .m { color: var(--faint); font-size: 0.72rem; white-space: nowrap; }
+.fase .obj { color: var(--text); margin-bottom: 0.45rem; }
+.fase ul { list-style: none; margin: 0.2rem 0; }
+.fase li { padding-left: 1.15rem; position: relative; margin: 0.26rem 0; color: var(--muted); font-size: 0.8rem; }
+.fase li::before { content: "·"; position: absolute; left: 0.25rem; color: var(--faint); }
+.fase .gate, .fase .kill { margin-top: 0.55rem; padding-top: 0.5rem; border-top: 1px dashed var(--line); font-size: 0.78rem; }
+.fase .gate .glabel { color: var(--fos); letter-spacing: 0.08em; font-size: 0.7rem; }
+.fase .kill .glabel { color: var(--red); letter-spacing: 0.08em; font-size: 0.7rem; }
+.fase .gate li::before { content: "✓"; color: var(--fos); }
+.fase .kill li::before { content: "✗"; color: var(--red); }
+
+/* tree ASCII-ish */
+.tree { margin: 0.9rem 0; font-size: 0.9rem; }
+.tree .tr { display: grid; grid-template-columns: 1.6rem 8.5rem 1fr; gap: 0.4rem; padding: 0.22rem 0; }
+.tree .tr .br { color: var(--faint); }
+.tree .tr .nm { color: var(--fos); }
+.tree .tr .ds { color: var(--muted); }
+@media (max-width: 560px) { .tree .tr { grid-template-columns: 1.4rem 7rem 1fr; font-size: 0.82rem; } }
+
+/* footer */
+footer { margin-top: 3.5rem; border-top: 1px solid var(--line); padding-top: 1.3rem; font-size: 0.8rem; color: var(--muted); }
+footer .cta { border: 1px solid var(--fos-dim); border-radius: 5px; background: var(--fos-glow); padding: 0.8rem 1rem; margin-bottom: 1.2rem; font-size: 0.88rem; color: var(--text); }
+footer .cta .tag { color: var(--fos); font-weight: 700; }
+footer .fin { color: var(--faint); font-size: 0.75rem; margin-top: 0.8rem; line-height: 1.8; }
+
+/* print: documento completo, colores claros */
+@media print {
+  .bar, .deeper, .replay { display: none !important; }
+  [data-nivel-min], [data-solo-aud] { display: block !important; }
+  :root { --bg: #fff; --bg2: #fff; --bg3: #f4f4f4; --text: #111; --muted: #444; --faint: #777; --fos: #14602f; --amber: #7a5200; --red: #a33; --line: #ccc; --line2: #aaa; }
+  body::before { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ barra sticky: línea de comando ============ -->
+<nav class="bar" aria-label="Controles del pitch">
+  <span class="brand">PULPO<small>(1)</small></span>
+
+  <div class="flagset" role="radiogroup" aria-label="Nivel de zoom">
+    <span class="flagname">--nivel=</span>
+    <button class="flag" role="radio" aria-checked="false" data-set-nivel="1">frase</button>
+    <button class="flag" role="radio" aria-checked="false" data-set-nivel="2">parrafo</button>
+    <button class="flag" role="radio" aria-checked="false" data-set-nivel="3">tesis</button>
+    <button class="flag" role="radio" aria-checked="false" data-set-nivel="4">apendices</button>
+  </div>
+
+  <div class="flagset" role="radiogroup" aria-label="Audiencia">
+    <span class="flagname">--audiencia=</span>
+    <button class="flag" role="radio" aria-checked="false" data-set-aud="inversionista">inversionista</button>
+    <button class="flag" role="radio" aria-checked="false" data-set-aud="cliente">cliente</button>
+    <button class="flag" role="radio" aria-checked="false" data-set-aud="partner">partner</button>
+  </div>
+
+  <div class="tools">
+    <label class="aa">Aa <input type="range" id="escala" min="0.75" max="1.25" step="0.05" value="1" aria-label="Tamaño de texto"></label>
+    <button class="themebtn" id="tema" aria-label="Cambiar tema claro/oscuro">◐ tema</button>
+  </div>
+</nav>
+
+<div class="page">
+
+<div class="manhead" aria-hidden="true">
+  <span>PULPO(1)</span><span>Manual del Operador</span><span>PULPO(1)</span>
+</div>
+
+<!-- ============ NIVEL 1 — FRASE ============ -->
+<header class="hero" data-nivel-min="1" id="n1">
+  <div class="term">
+    <div class="term-title"><span>pulpo — sesión</span><span>tty0 · CDMX</span></div>
+    <div class="term-body">
+      <div><span class="prompt">$ </span><span class="typed" id="typed">pulpo --que-es</span><span class="cursor" id="cur" aria-hidden="true"></span></div>
+      <p class="oneliner" id="oneliner">API que permite a un <em>agente de IA</em> ejecutar <em>acciones físicas verificables</em> en el mundo real a través de humanos despachados, con evidencia estructurada, <span class="amber">garantía por acción</span> y trazabilidad total — diseñada para que el actuador humano sea <em>sustituible por robots</em> sin cambiar el contrato.</p>
+
+      <p class="hero-sub" data-solo-aud="inversionista"><span class="tag"># inversionista →</span> la capa de trabajo físico de LatAm, instrumentada antes del despliegue robótico: el que opere el loop humano estos años llega al big bang con la demanda, el estándar y los datos.</p>
+      <p class="hero-sub" data-solo-aud="cliente"><span class="tag"># cliente →</span> acciones físicas con SLA, evidencia con hash y garantía en contrato — hoy, para despachos legales y administradores de propiedades en CDMX. No un marketplace: despachamos y respondemos.</p>
+      <p class="hero-sub" data-solo-aud="partner"><span class="tag"># partner técnico →</span> seis llamadas, sesión con telemetría en vivo y mandato legal resuelto. La superficie MCP/REST existe latente sobre una operación real y se enciende en Fase 2.</p>
+
+      <div class="chips" aria-label="Las seis primitivas">
+        <button class="chip" data-goto="apA" data-tip="P1 — Documentar el estado de un bien, espacio o situación contra checklist estructurado.">observar()</button>
+        <button class="chip" data-goto="apA" data-tip="P2 — Mover documento u objeto con identidad verificada en ambos extremos y cadena de custodia.">transferir()</button>
+        <button class="chip" data-goto="apA" data-tip="P3 — Presencia física bajo mandato: fila, turno, ventanilla, recepción de un tercero.">representar()</button>
+        <button class="chip" data-goto="apA" data-tip="P4 — Observar a un tercero ejecutando un servicio y validar contra criterio de conformidad.">supervisar()</button>
+        <button class="chip" data-goto="apA" data-tip="P5 — Conseguir un documento, constancia u objeto emitido o vendido por un tercero.">obtener()</button>
+        <button class="chip" data-goto="apA" data-tip="P6 — Recolectar firmas y consentimientos con verificación de identidad presencial.">acreditar()</button>
+      </div>
+
+      <p class="statusline">estado: <b>blueprint — pre-build</b> · celda inicial: CDMX · PULPO es codename provisional · actuator-agnostic: hoy humanos instrumentados, mañana robots</p>
+    </div>
+  </div>
+
+  <div class="deeper" data-when="1">
+    <button data-set-nivel="2"><span class="prompt">$</span>pulpo --nivel=parrafo <span class="comment"># profundizar ↓</span></button>
+  </div>
+</header>
+
+<!-- ============ NIVEL 2 — PÁRRAFO ============ -->
+<section data-nivel-min="2" id="n2">
+  <div class="sec-h"><span class="num">2</span><h2>Sinopsis</h2><span class="src">README · nivel 2</span></div>
+
+  <p>Los agentes de IA ya piensan, planean y pagan, pero <b>no tienen cuerpo</b>. Todo lo que requiere presencia física — inspeccionar, entregar, recoger, esperar, supervisar, firmar — hoy es un muro para cualquier sistema autónomo. PULPO expone ese mundo físico como una API: <span class="k">seis primitivas de acción estandarizadas</span>, ejecutadas por una red de operadores generalistas entrenados, con telemetría en vivo (visión, audio, estado), mandato legal del usuario final, allowlist determinista de lo permitido y garantía sobre el cumplimiento. Empezamos en CDMX sirviendo demanda real de hoy — administración de propiedades, despachos legales — para acumular el activo que nadie más tiene: <span class="n">datos operativos estructurados de cómo los humanos ejecutan acciones físicas</span>: el corpus que entrena a la siguiente generación de actuadores, que ya no serán humanos.</p>
+
+  <h3>Punto focal — la misma ejecución paga tres veces</h3>
+  <div class="tree" role="list">
+    <div class="tr" role="listitem"><span class="br">├─</span><span class="nm">1 · servicio</span><span class="ds">el fee por acción — ingreso presente que paga la operación</span></div>
+    <div class="tr" role="listitem"><span class="br">├─</span><span class="nm">2 · proceso</span><span class="ds">SOPs pulidos y estandarizados — margen creciente sin subir precio</span></div>
+    <div class="tr" role="listitem"><span class="br">└─</span><span class="nm">3 · dato</span><span class="ds">el registro de <b>cómo</b> se ejecuta — el insumo que la robótica necesita y no tiene</span></div>
+  </div>
+
+  <p>Human-out-of-the-loop empieza forzosamente como <span class="k">human-in-the-loop</span>, varias generaciones. Quien opere ese loop durante los años previos al despliegue masivo de robots en LatAm llega al big bang siendo dueño del catálogo de habilidades, de la demanda y de los datos. Migración planeada: <b>empresa de servicios apificados para agentes → RoboLaborForce as a Service</b>.</p>
+
+  <div class="deeper" data-when="2">
+    <button data-set-nivel="3"><span class="prompt">$</span>pulpo --nivel=tesis <span class="comment"># la tesis completa ↓</span></button>
+  </div>
+</section>
+
+<!-- ============ NIVEL 3 — TESIS COMPLETA ============ -->
+<section data-nivel-min="3" id="n3-1">
+  <div class="sec-h"><span class="num">3.1</span><h2>El problema</h2><span class="src">docs/01</span></div>
+
+  <p>Un agente de IA puede razonar, buscar, escribir, pagar y coordinar. <b>No puede tocar.</b> Cada vez que una cadena autónoma llega a un paso físico — verificar que el departamento quedó bien después del plomero, entregar un contrato con acuse, recoger una constancia, esperar un turno, mirar un auto usado antes de comprarlo — la cadena se rompe y regresa a un humano coordinando por WhatsApp.</p>
+
+  <div class="code" role="img" aria-label="Traza de error: el agente ejecuta razonar, buscar, escribir, pagar y coordinar con éxito, pero tocar lanza PhysicalWorldError: el mundo físico es el último syscall sin implementar; el fallback es un humano coordinando por WhatsApp"><span class="dim">&gt;&gt;&gt;</span> agente.ejecutar_plan()
+  <span class="ok">✓ razonar   ✓ buscar   ✓ escribir   ✓ pagar   ✓ coordinar</span>
+  <span class="err">✗ tocar</span>
+  <span class="err">PhysicalWorldError</span><span class="dim">:</span> el mundo físico es el último <span class="amber">syscall</span> sin implementar
+  <span class="dim">└── fallback:</span> humano coordinando por WhatsApp</div>
+
+  <p>Lo que un agente necesita y nadie ofrece: <span class="k">determinismo de ejecución</span>. Pides la acción → se ejecuta con SLA → o falla explícito con reembolso automático. Eso es una operación con garantía, no un tablón de anuncios.</p>
+</section>
+
+<section data-nivel-min="3" id="n3-2">
+  <div class="sec-h"><span class="num">3.2</span><h2>Los que ya lo intentaron</h2><span class="src">docs/01–02 · 2026</span></div>
+
+  <p>Los intentos existentes fallaron <b>por diseño, no por timing</b>:</p>
+  <div class="players">
+    <div class="player">
+      <div class="ph"><b>Human API</b> <span class="comment">EE.UU. · $65M de fondos cripto</span><span class="verdict bad">SIN OPERACIÓN</span></div>
+      <p>En realidad es una empresa de datos de entrenamiento (audio, captura visual). "Human Action" es roadmap, no operación.</p>
+    </div>
+    <div class="player">
+      <div class="ph"><b>RentAHuman</b> <span class="comment">EE.UU. · indie</span><span class="verdict bad">SIN EJECUCIÓN</span></div>
+      <p>Marketplace con API y MCP. Resolvió matching y pagos; no resolvió ejecución. Evidencia: tareas con <span class="n">30 aplicantes y cero cumplimiento</span>; <span class="n">~70 agentes</span> conectados tras seis meses. Un marketplace best-effort no es consumible por un agente.</p>
+    </div>
+    <div class="player">
+      <div class="ph"><b>HumanInLoop</b> <span class="comment">Filipinas</span><span class="verdict mid">OPERA · NO EN LATAM</span></div>
+      <p>El único con operación real — porque es un BPO preexistente (iSuporta) con API encima. Valida la secuencia: operación primero, superficie agéntica después. Techo geográfico: no ejecuta en LatAm.</p>
+    </div>
+  </div>
+
+  <div class="callout green"><span class="k">Lección de secuencia (congelada · D07):</span> RentAHuman construyó la API sin operación → directorio vacío. HumanInLoop puso API sobre operación → único con ejecución real. <b>Operación instrumentada primero, superficie agéntica latente, encendido cuando la demanda llegue.</b> Encender un MCP server sobre una operación que funciona toma semanas; materializar una operación bajo un MCP server publicitado no se puede hacer a tiempo.</div>
+</section>
+
+<section data-nivel-min="3" id="n3-3">
+  <div class="sec-h"><span class="num">3.3</span><h2>La solución — 5 propiedades</h2><span class="src">docs/01</span></div>
+
+  <p>Una capa de actuación física con cinco propiedades que ningún jugador combina:</p>
+  <ol class="man">
+    <li><b>Catálogo cerrado de 6 primitivas</b> — no texto libre. Todo lo ejecutable es una configuración parametrizada de <span class="k">OBSERVAR · TRANSFERIR · REPRESENTAR · SUPERVISAR · OBTENER · ACREDITAR</span>.</li>
+    <li><b>Protocolo de sesión con telemetría en vivo</b> — el agente no postea y espera: comanda, percibe (observación estructurada; video crudo solo bajo elevación) y corrige a mitad de tarea. El humano opera como periférico estandarizado: actuador y sensor.</li>
+    <li><b>Cadena de autoridad legal</b> — mandato del usuario final (humano) con alcance enumerado y topes; el agente es solo canal de instrucción. El registro de mandatos es el activo legal central.</li>
+    <li><b>Legalidad por allowlist determinista</b> — un LLM enruta hacia el catálogo; <b>nunca autoriza</b>. La máquina de estados determinista autoriza. Detección de estructuración por agregación sobre el log.</li>
+    <li><b>Garantía por SKU</b> — respondemos por nuestro propio cumplimiento como mandatarios (reembolso + múltiplo acotado del fee), precificada con siniestralidad propia por primitiva.</li>
+  </ol>
+
+  <div class="aud-note" data-solo-aud="partner"><span class="tag">--audiencia=partner ·</span> la superficie completa son seis llamadas: <span class="k">observar() transferir() representar() supervisar() obtener() acreditar()</span>. Un agente aprende seis firmas y accede a todos los verticales — y el contrato <b>no cambia cuando el actuador deje de ser humano</b>. Detalle del protocolo en el apéndice C.</div>
+  <div class="aud-note" data-solo-aud="cliente"><span class="tag">--audiencia=cliente ·</span> para ti esto significa: pides una acción, no coordinas personas. Recibes evidencia estructurada con hash (fotos georreferenciadas, acuses, checklist), SLA en contrato y garantía formal: si no cumplimos, reembolso automático + múltiplo acotado del fee.</div>
+</section>
+
+<section data-nivel-min="3" id="n3-4">
+  <div class="sec-h"><span class="num">3.4</span><h2>Timing</h2><span class="src">docs/02</span></div>
+
+  <h3>El contexto macro que justifica que exista</h3>
+  <div class="stats">
+    <div class="stat"><div class="v">$97 <span style="font-size:0.8rem">vs</span> $25</div><div class="l">PIB por hora trabajada en PPP, EE.UU. vs México (USD) — <span class="hecho">hecho</span> OCDE 2024–2025</div></div>
+    <div class="stat"><div class="v">~4x</div><div class="l">productividad por hora del trabajador estadounidense vs el mexicano</div></div>
+    <div class="stat"><div class="v">2,200 h</div><div class="l">horas anuales trabajadas en México — las más altas de la OCDE (EE.UU.: 1,805)</div></div>
+    <div class="stat"><div class="v">&gt;50%</div><div class="l">del empleo mexicano es informal, concentrado en operaciones pequeñas de margen delgado</div></div>
+  </div>
+
+  <div class="callout"><b>Corrección a la tesis original:</b> el delta no es 15%. Es <span class="n">~75% por hora</span> — México trabaja ~22% más horas y produce ~74% menos por hora. La cifra real es mucho más brutal, y <b>fortalece la tesis</b>: una economía que corre sobre gente en vez de capital es exactamente una economía cuya capa de trabajo físico está sin instrumentar, sin estandarizar y sin datos. Ese es el insumo de PULPO.</div>
+
+  <p><span class="opinion">opinión</span>La única forma realista de cerrar esa brecha en trabajo físico es la misma que la cerró en trabajo cognitivo: <span class="k">instrumentación → estandarización → datos → automatización</span>. PULPO es esa secuencia aplicada a la acción física.</p>
+
+  <h3>Por qué el mercado pleno llega en ~2 años, no hoy</h3>
+  <ol class="man">
+    <li><b>Autoridad de gasto agéntico.</b> Los agentes de 2026 razonan y planean; casi ninguno tiene presupuesto autónomo para el mundo físico (el marketplace más visible: ~70 agentes en 6 meses). Esa autoridad llega por la vía de protocolos de pago agéntico y mandatos — cuestión de trimestres-años, no de década.</li>
+    <li><b>Inteligencia ambiental.</b> El único robot de casa consumer shipping (1X Neo, $20K / $499 al mes) opera con teleoperadores humanos para tareas complejas; Ballie de Samsung murió sin lanzar. Los dispositivos que emitirán triggers automáticos existen en marketing, no en los hogares de LatAm.</li>
+    <li><b>Robots comerciales en LatAm: pre-comerciales.</b> La ventana human-in-the-loop aquí es más larga que en EE.UU. por costo laboral relativo: el humano mexicano despachado compite con el robot por más años.</li>
+  </ol>
+
+  <h3>Por qué se empieza hoy, no en 2 años</h3>
+  <p>El error sería leer lo anterior como "espera". Los activos que deciden quién gana en 2028 <b>solo se acumulan operando</b>, y no se pueden comprar después:</p>
+  <ol class="man">
+    <li><b>Siniestralidad por primitiva.</b> La garantía — el corazón del producto — se precifica con historial. Quien empieza en 2028 vende garantía a ciegas contra quien tiene 24 meses de datos de falla por SKU.</li>
+    <li><b>SOPs y catálogo de habilidades.</b> Miles de ejecuciones destilan qué cuenta como "hecho", dónde falla el mundo real, qué evidencia convence a un cliente y a un juez.</li>
+    <li><b>El estándar.</b> El contrato de acción física que los agentes adopten será el que ya funcione cuando lleguen. Los estándares se fijan antes del big bang, no después.</li>
+    <li><b>Registro de mandatos y confianza.</b> Clientes, ejecutores vetados, densidad de celda, partners licenciados: años de acumulación, cero atajos.</li>
+    <li><b>La restricción personal como calendario.</b> La construcción invisible y de bajo volumen 2026–2028 es compatible con la restricción estructural del fundador; el lanzamiento visible coincide con su levantamiento en 2028. El timing personal y el del mercado coinciden — <b>esa coincidencia es la ventana</b>.</li>
+  </ol>
+
+  <div class="aud-note" data-solo-aud="inversionista"><span class="tag">--audiencia=inversionista ·</span> la asimetría está en la secuencia: construir invisible 2026–2028 cuesta poco (asset-light, demanda cautiva propia) y compra los tres activos no replicables — siniestralidad, estándar, corpus. El levantamiento de capital está deliberadamente calendarizado en Fase 3 (2028), <b>con</b> 24 meses de datos: levantar antes es vender barato la tesis sin la evidencia.</div>
+</section>
+
+<section data-nivel-min="3" id="n3-5">
+  <div class="sec-h"><span class="num">3.5</span><h2>El moat — fundición, no cámara</h2><span class="src">docs/06</span></div>
+
+  <p>La tesis original era "cientos de miles de horas de grabación". <b>El mercado ya refutó esa versión.</b> <span class="hecho">hecho</span>Estado del mercado de datos para physical AI, 2026:</p>
+  <ul class="man">
+    <li>Existe un <b>glut</b> de video egocéntrico crudo: se comercia a <span class="n">$2–5 USD/hora</span>, por debajo de su costo de producción (<span class="n">$5–20/hora</span>). Los equipos de robótica descartan ~90% del footage masivo; "en una hora de video encontramos 2–3 segmentos útiles".</li>
+    <li>Lo que sí pagan los labs, a <span class="n">~100x</span> el precio del commodity: datos <b>especificados antes de capturarse</b> — catálogo de habilidades con metas de cobertura explícitas, diversidad de entornos sobre volumen (32 entornos × 50 demostraciones supera volúmenes masivos de lo mismo), modos de falla representados, derechos limpios, formatos estándar (LeRobot, RLDS, MCAP).</li>
+    <li>El co-entrenamiento video-humano + teleoperación supera a robot-only por <span class="n">34–228%</span>. El dato humano bien especificado sí es insumo real — cuando está curado.</li>
+  </ul>
+
+  <div class="callout green"><span class="k">Reformulación congelada (D15):</span> no somos una cámara que graba trabajo; somos una <b>fundición de datos de habilidades físicas</b>: <b>(1)</b> especificación antes de captura — el SOP de cada primitiva ES la especificación; <b>(2)</b> etiquetado denso gratis — checklist, desviaciones, resultado y siniestro se registran para operar, no como costo extra de labeling; <b>(3)</b> diversidad LatAm que ningún dataset gringo cubre — entornos, objetos, informalidad, infraestructura; <b>(4)</b> derechos limpios por arquitectura de consentimiento desde el día uno. El subproducto de operar bien es exactamente el dataset que el mercado paga caro; el subproducto de solo grabar es el commodity de $2/hora.</div>
+
+  <div class="callout red"><b>Qué NO haremos con los datos:</b> no vender datos de clientes ni episodios identificables — se vende cobertura de habilidades, no vidas ajenas · no capturar en interiores sin elevación explícita · no prometer "anonimizado" donde técnicamente no lo es. La primera venta de datos que viole la confianza operativa mata el negocio de servicios que financia todo. Orden de prioridad congelado: <span class="k">servicio &gt; proceso &gt; dato</span>.</div>
+
+  <div class="aud-note" data-solo-aud="inversionista"><span class="tag">--audiencia=inversionista ·</span> el dato no se modela como ingreso base de la ventana 0–18m — se modela como <b>opción de convexidad gratis que la operación paga</b> (D16). El downside es un negocio de servicios con margen creciente; el upside es ser el proveedor de cobertura de habilidades LatAm cuando la robótica la compre.</div>
+</section>
+
+<section data-nivel-min="3" id="n3-6">
+  <div class="sec-h"><span class="num">3.6</span><h2>La migración a RoboLaborForce</h2><span class="src">docs/05–06</span></div>
+
+  <p>Human-out-of-the-loop empieza forzosamente como human-in-the-loop, varias generaciones, mejorando órdenes de magnitud. La secuencia:</p>
+  <div class="twrap"><table>
+    <thead><tr><th>Etapa</th><th>Actuador</th><th>Qué acumulamos</th></tr></thead>
+    <tbody>
+      <tr><td><span class="n">1 · hoy</span></td><td>Humano con SOP + telemetría</td><td>Demanda, SOPs, siniestralidad, corpus</td></tr>
+      <tr><td><span class="n">2</span></td><td>Humano asistido (el agente corrige en sesión)</td><td>Descomposición fina de habilidades</td></tr>
+      <tr><td><span class="n">3</span></td><td>Híbrido: robot en primitivas absorbibles (OBSERVAR primero), humano en el resto</td><td>Datos de handoff humano↔robot — los más escasos del mundo</td></tr>
+      <tr><td><span class="n">4</span></td><td>Flotilla robótica propia/asociada; humanos en excepciones y fe presencial</td><td>El cliente ya es nuestro; el robot es un cambio de driver</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>Toda primitiva se especifica contra la interfaz <span class="k">Actuador</span> (capacidades: desplazarse, manipular, capturar, interactuar, esperar), no contra "persona". <code class="k">ActuadorHumano</code> es el driver v1; <code class="k">ActuadorRobot</code> es un driver vN que se conecta al mismo contrato. <b>La migración es un cambio de driver, no una refundación</b> (D14). En la etapa 4, PULPO opera la demanda, el estándar y la certificación de habilidades; los dueños de robots conectan capacidad como hoy un ejecutor conecta su tiempo.</p>
+
+  <p><span class="opinion">opinión</span>Sobre la ventana LatAm, la paradoja se registra sin resolverla: el costo laboral mexicano retrasa la adopción robótica local — eso alarga la etapa 1–2 (más tiempo para acumular) y retrasa la 3–4 (el pago del corpus llega después). Ventaja de acumulación y riesgo de paciencia de capital a la vez; la resuelven los datos de Fase 1–2.</p>
+</section>
+
+<section data-nivel-min="3" id="n3-7">
+  <div class="sec-h"><span class="num">3.7</span><h2>A quién sirve, en orden</h2><span class="src">docs/01</span></div>
+
+  <ol class="man">
+    <li><b>Fase 0 — agentes propios:</b> Domum (administración de propiedades) y la operación Airbnb propia. Demanda cautiva, cero ciclo de venta, laboratorio del protocolo.</li>
+    <li><b>Fase 1 — compradores humanos de acciones verificables:</b> despachos legales (entregas con acuse, firmas, obtención de documentos), administradores de propiedades y STR. Compran el servicio hoy con presupuesto existente; son el simulador de la demanda agéntica.</li>
+    <li><b>Fase 2 — agentes de terceros vía API/MCP:</b> cuando la autoridad de gasto agéntico llegue a LatAm, la superficie ya existe sobre una operación probada.</li>
+    <li><b>Fase 3 — plataformas y dispositivos:</b> OEMs de inteligencia ambiental y robots de casa; el trigger deja de ser una persona y pasa a ser un sensor.</li>
+  </ol>
+
+  <div class="aud-note" data-solo-aud="cliente"><span class="tag">--audiencia=cliente ·</span> tu fase es ahora: Fase 1 arranca con 10–20 despachos y administradores en CDMX. Entras con presupuesto que ya gastas en mensajería, gestores y horas de coordinación — y sales con evidencia estructurada, SLA y garantía en contrato.</div>
+  <div class="aud-note" data-solo-aud="partner"><span class="tag">--audiencia=partner ·</span> tu fase se enciende en la 2: MCP server + REST en beta privada sobre una operación ya probada. La lección RentAHuman está congelada como regla: la API pública nunca se publicita antes de que la operación la respalde.</div>
+</section>
+
+<section data-nivel-min="3" id="n3-8">
+  <div class="sec-h"><span class="num">3.8</span><h2>Lo que NO somos</h2><span class="src">docs/01 · fronteras de identidad</span></div>
+  <ul class="man red">
+    <li>No somos gig marketplace: no subastamos tareas, <b>despachamos con SLA y respondemos por el resultado</b>.</li>
+    <li>No somos mensajería: la entrega es un caso particular de TRANSFERIR con cadena de custodia e identidad; <b>el producto es la evidencia, no el traslado</b>.</li>
+    <li>No movemos dinero ni valores — cero efectivo, cero custodia de fondos, congelado desde el día 0.</li>
+    <li>No ejecutamos oficios licenciados ni actos que exigen fe pública: los ruteamos a partners (notarios, actuarios, técnicos certificados) y entregamos el expediente perfecto.</li>
+    <li>No vendemos "humanos": vendemos acciones físicas verificadas. <b>El ejecutor es sustituible por diseño</b> — esa sustituibilidad es la tesis de largo plazo.</li>
+  </ul>
+
+  <div class="deeper" data-when="3">
+    <button data-set-nivel="4"><span class="prompt">$</span>pulpo --nivel=apendices <span class="comment"># primitivas · economics · arquitectura · ruta ↓</span></button>
+  </div>
+</section>
+
+<!-- ============ NIVEL 4 — APÉNDICES ============ -->
+<section data-nivel-min="4" id="apA">
+  <div class="sec-h"><span class="num">A</span><h2>man pulpo — las 6 primitivas</h2><span class="src">docs/03</span></div>
+
+  <p class="comment"># región operativa v1 — dentro de la cual viven las 6: percibir + actuar · custodia hasta documento/objeto (nunca dinero) · mandato simple (nunca notarial in-house) · ejecutor generalista (nunca oficio licenciado) · latencia programada o mismo día · sesgo a recurrente.</p>
+  <p>Todo lo ejecutable por PULPO es una configuración parametrizada de seis primitivas. <b>No existe "tarea en texto libre".</b> Un vertical nuevo = plantillas nuevas de parámetros + template de evidencia; nunca primitivas nuevas sin decisión explícita de framework (D09).</p>
+
+  <div class="prim">
+    <div class="prim-h"><span class="pid">P1</span><span class="fn">observar</span><span class="args">(objetivo, checklist, nivel_detalle, sesion_viva=False)</span></div>
+    <div class="prim-b">
+      <div class="fld"><span>nombre</span><span>Documentar el estado de un bien, espacio o situación contra checklist estructurado.</span></div>
+      <div class="fld"><span>evidencia</span><span>Fotos georreferenciadas + timestamp + esquema de datos llenado + hash del paquete.</span></div>
+      <div class="fld"><span>consume</span><span>Inmobiliario (inspección, acta entrada/salida) · seguros (siniestro, riesgo) · marketplaces de usados · legal (estado de hechos) · retail (anaquel).</span></div>
+      <div class="fld"><span>robot-readiness</span><span class="k">La primera absorbible (cámaras, drones); el esquema se diseña para que la fuente de captura sea intercambiable.</span></div>
+    </div>
+  </div>
+
+  <div class="prim">
+    <div class="prim-h"><span class="pid">P2</span><span class="fn">transferir</span><span class="args">(item, origen, destino, verificacion_identidad, ventana)</span></div>
+    <div class="prim-b">
+      <div class="fld"><span>nombre</span><span>Mover documento u objeto con identidad verificada en ambos extremos y cadena de custodia.</span></div>
+      <div class="fld"><span>evidencia</span><span>Cadena de custodia (quién tocó qué cuándo) + acuse firmado + identidad verificada.</span></div>
+      <div class="fld"><span>consume</span><span>Legal (contratos, notificaciones extrajudiciales) · inmobiliario (llaves, documentos) · fintech futuro (contratos de crédito) · diáspora.</span></div>
+      <div class="fld warn"><span>frontera</span><span>Interpelación judicial = actuario · efectivo/valores = excluido.</span></div>
+    </div>
+  </div>
+
+  <div class="prim">
+    <div class="prim-h"><span class="pid">P3</span><span class="fn">representar</span><span class="args">(lugar, gestion_permitida, tope_decision, duracion_max)</span></div>
+    <div class="prim-b">
+      <div class="fld"><span>nombre</span><span>Presencia física bajo mandato: fila, turno, ventanilla, recepción de un tercero.</span></div>
+      <div class="fld"><span>evidencia</span><span>Mandato vigente verificado + registro de gestión + resultado documentado.</span></div>
+      <div class="fld"><span>consume</span><span>Trámites (actas, constancias) · inmobiliario (recibir proveedor) · boletos/turnos.</span></div>
+      <div class="fld"><span>robot-readiness</span><span class="k">La última — la presencia con efectos jurídicos exigirá humano por años.</span></div>
+    </div>
+  </div>
+
+  <div class="prim">
+    <div class="prim-h"><span class="pid">P4</span><span class="fn">supervisar</span><span class="args">(servicio, checklist_conformidad, autoridad_desviacion, sesion_viva=False)</span></div>
+    <div class="prim-b">
+      <div class="fld"><span>nombre</span><span>Observar a un tercero ejecutando un servicio y validar contra criterio de conformidad.</span></div>
+      <div class="fld"><span>evidencia</span><span>Sesión + checklist + veredicto conforme/no-conforme + registro de desviaciones.</span></div>
+      <div class="fld"><span>consume</span><span>Inmobiliario (el plomero, la limpieza STR) · diáspora (reparación en casa de los padres) · construcción ligera.</span></div>
+      <div class="fld warn"><span>regla dura</span><span>El generalista supervisa el oficio, jamás lo ejecuta (línea D4/R4).</span></div>
+    </div>
+  </div>
+
+  <div class="prim">
+    <div class="prim-h"><span class="pid">P5</span><span class="fn">obtener</span><span class="args">(item, emisor, requisitos, tope_gasto)</span></div>
+    <div class="prim-b">
+      <div class="fld"><span>nombre</span><span>Conseguir un documento, constancia u objeto emitido/vendido por un tercero.</span></div>
+      <div class="fld"><span>evidencia</span><span>Comprobante de emisión/compra + custodia hasta entrega.</span></div>
+      <div class="fld"><span>consume</span><span>Trámites · farmacia no controlada · compras específicas · legal (copias certificadas).</span></div>
+      <div class="fld warn"><span>frontera</span><span>Pago SIEMPRE por canal digital de la plataforma, nunca efectivo del ejecutor (D01/R1).</span></div>
+    </div>
+  </div>
+
+  <div class="prim">
+    <div class="prim-h"><span class="pid">P6</span><span class="fn">acreditar</span><span class="args">(documento, firmantes, nivel_verificacion, testigos=0)</span></div>
+    <div class="prim-b">
+      <div class="fld"><span>nombre</span><span>Recolectar firmas y consentimientos con verificación de identidad presencial.</span></div>
+      <div class="fld"><span>evidencia</span><span>Identidad verificada + firma + registro audiovisual bajo consentimiento + timestamp.</span></div>
+      <div class="fld"><span>consume</span><span>Legal · fintech futuro (KYC presencial) · inmobiliario (contratos de renta).</span></div>
+      <div class="fld warn"><span>frontera</span><span>Fe pública = notario partner. PULPO acredita el hecho; el fedatario da la fe.</span></div>
+    </div>
+  </div>
+
+  <h3>Por qué 6 y no N</h3>
+  <ol class="man">
+    <li><b>Garantía precificable:</b> la siniestralidad se acumula por primitiva a través de todos los verticales. Seis distribuciones densas &gt; doscientas anémicas.</li>
+    <li><b>Entrenamiento y sustitución del ejecutor:</b> seis SOPs dominables por un generalista en días; onboarding barato, calidad homogénea, red intercambiable.</li>
+    <li><b>Catálogo de habilidades robot-ready:</b> cada primitiva se descompone en sub-habilidades físicas (desplazarse, identificar, manipular, fotografiar, esperar, entregar, firmar-testificar). Ese árbol es el esqueleto del corpus: los compradores de datos robóticos pagan por cobertura especificada de un catálogo, no por horas de video.</li>
+    <li><b>Superficie API estable:</b> un agente aprende seis llamadas y accede a todos los verticales. El contrato no cambia cuando el actuador deje de ser humano.</li>
+  </ol>
+</section>
+
+<section data-nivel-min="4" id="apB">
+  <div class="sec-h"><span class="num">B</span><h2>Economics</h2><span class="src">docs/04</span></div>
+
+  <p class="comment"># cifras marcadas como opinión son estimaciones de diseño para dimensionar; se sustituyen con datos reales de Fase 0. Regla no negociable: todo capital parqueado se compara contra CETES.</p>
+
+  <h3>La unidad económica: la hora-ejecutor en celda</h3>
+  <p>El costo del negocio es la hora del ejecutor dentro de una <b>celda de densidad</b> (zona geográfica atendible sin tiempo muerto de traslado excesivo). El ingreso es el fee por acción. Todo lo demás es amortización.</p>
+
+  <p><b>Multiplexeo — la economía de escala real.</b> Un vertical solo tiene demanda picuda: inmobiliario en horario hábil con picos de fin de mes; legal en vencimientos; retail en horario comercial; siniestros aleatorios; diáspora en fines de semana. <span class="k">Curvas complementarias sobre la misma celda.</span> Es la economía del cloud aplicada a trabajo físico: demanda heterogénea sobre capacidad compartida.</p>
+
+  <div class="viz" id="vizMux">
+    <div class="viz-title">Curvas complementarias sobre una celda — día hábil <span class="opinion">opinión</span></div>
+    <div class="viz-sub">forma ilustrativa de las curvas de demanda por vertical (% de capacidad de la celda por hora) — no es una medición; se sustituye con datos de Fase 0</div>
+    <div class="legend" id="muxLegend" aria-hidden="true"></div>
+    <div class="chartwrap" id="muxWrap">
+      <svg id="muxSvg" viewBox="0 0 720 300" role="img" aria-label="Área apilada ilustrativa: la demanda de inmobiliario pica en la mañana, legal a media mañana, retail por la tarde y otros verticales rellenan parejo; la suma multiplexada llena la celda mucho más que cualquier vertical solo"></svg>
+      <div class="tip" id="muxTip"></div>
+    </div>
+    <details class="tableview">
+      <summary>ver datos como tabla</summary>
+      <div class="twrap" id="muxTable"></div>
+    </details>
+  </div>
+
+  <p><span class="opinion">opinión</span>Utilización mono-vertical <span class="n">~30–40%</span>; multiplexada <span class="n">~65–70%</span> → el costo efectivo por acción cae cerca de la mitad. <b>Ese delta es simultáneamente el margen y el fondeo de la garantía.</b></p>
+  <div class="range2" role="img" aria-label="Comparación: utilización mono-vertical 30 a 40 por ciento contra utilización multiplexada 65 a 70 por ciento">
+    <div class="rrow"><span class="lab">utilización mono-vertical</span><span class="track"><span class="fill" style="left:30%; width:10%; background:var(--faint)"></span></span><span class="val">30–40%</span></div>
+    <div class="rrow"><span class="lab">utilización multiplexada</span><span class="track"><span class="fill" style="left:65%; width:5%; background:var(--fos)"></span></span><span class="val">65–70%</span></div>
+  </div>
+
+  <div class="callout green"><span class="k">Corolario congelado (D10):</span> expandir verticales antes que geografía. <b>3 alcaldías con 8 verticales &gt; 8 ciudades con 1 vertical.</b> Celda nueva solo por saturación (&gt;70% de utilización sostenida 2 meses).</div>
+
+  <h3>Estructura de ingreso por acción <span class="opinion">opinión</span></h3>
+  <div class="twrap"><table>
+    <thead><tr><th>Componente</th><th>Rango estimado</th></tr></thead>
+    <tbody>
+      <tr><td>Fee por acción (según primitiva y latencia)</td><td><span class="n">$180–$900 MXN</span></td></tr>
+      <tr><td>Costo ejecutor (hora prorrateada + traslado)</td><td><span class="n">40–55%</span> del fee</td></tr>
+      <tr><td>Aporte a fondo de garantía</td><td><span class="n">5–10%</span> del fee</td></tr>
+      <tr><td>Plataforma / overhead prorrateado</td><td><span class="n">10–15%</span> del fee</td></tr>
+      <tr><td>Margen de contribución objetivo</td><td><span class="n">25–35%</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="code"><span class="dim"># piso de precio por SKU — un SKU que no lo cubre sale del catálogo</span>
+precio_min(sku) = costo_ejecutor
+               + siniestralidad_esperada
+               + reserva_garantia × <span class="amber">tasa_CETES</span>  <span class="dim"># costo de oportunidad</span>
+               + overhead
+<span class="dim"># la garantía no se subsidia — se precifica</span></div>
+
+  <h3>Fondo de garantía</h3>
+  <ul class="man ok">
+    <li><b>Cubre:</b> incumplimiento propio (no-ejecución, evidencia inválida, SLA roto) → reembolso + múltiplo acotado del fee (<span class="opinion">opinión</span><span class="n">1–3x</span>, tope duro por SKU).</li>
+  </ul>
+  <ul class="man red">
+    <li><b>NO cubre:</b> daño consecuencial — se transfiere a aseguradora tercera cuando exista siniestralidad de 12+ meses por SKU. Nuestros datos son lo que la vuelve suscribible: activo, no gasto.</li>
+  </ul>
+  <p>La reserva vive en instrumentos líquidos; su costo de oportunidad (CETES) entra al piso de precio de cada SKU. CAPEX asset-light deliberado: sin flotilla, sin locales; instrumentación del ejecutor, software propio, vetting y entrenamiento.</p>
+
+  <h3>Métricas norte</h3>
+  <ol class="man">
+    <li>Utilización de celda (% horas facturables / disponibles)</li>
+    <li>Tasa de cumplimiento SLA por SKU — norte: <span class="n">≥97%</span></li>
+    <li>Siniestralidad por primitiva (garantías pagadas / acciones)</li>
+    <li>Costo de adquisición por acción recurrente vs one-shot</li>
+    <li>Margen de contribución por acción, después de garantía</li>
+    <li>Retención de ejecutores a 90 días (proxy de calidad del supply)</li>
+  </ol>
+
+  <div class="aud-note" data-solo-aud="cliente"><span class="tag">--audiencia=cliente ·</span> lo que estos números significan para ti: el precio por acción incluye la garantía — no es un extra. Si la acción no se cumple con el SLA pactado, el reembolso se dispara por regla determinista, no por negociación con soporte.</div>
+</section>
+
+<section data-nivel-min="4" id="apC">
+  <div class="sec-h"><span class="num">C</span><h2>Arquitectura</h2><span class="src">docs/05</span></div>
+
+  <h3>Capas por robustez — mapa de realidad</h3>
+  <div class="layers">
+    <div class="layer core">
+      <h4>núcleo robusto / autónomo — se construye primero</h4>
+      <ul>
+        <li><b>Catálogo de primitivas y SKUs</b> — datos propios, lógica determinista</li>
+        <li><b>Registro de mandatos</b> — quién autorizó qué alcance, topes, vigencia, revocación. El activo legal central</li>
+        <li><b>Máquina de estados de la acción</b> — única autoridad de ejecución</li>
+        <li><b>Cadena de evidencia</b> — paquete por acción (geo, timestamps, media, checklist, firmas) con hash encadenado</li>
+        <li><b>Motor de garantía</b> — reglas determinísticas de disparo de reembolso</li>
+      </ul>
+    </div>
+    <div class="layer fragile">
+      <h4>frágil / mantenimiento perpetuo — se administra, nunca se promete como autónomo</h4>
+      <ul>
+        <li>Supply humano: vetting, entrenamiento, rotación, calidad</li>
+        <li>Streaming de sesión en vivo (red celular, batería, cobertura)</li>
+        <li>Integraciones con partners licenciados</li>
+      </ul>
+    </div>
+    <div class="layer gated">
+      <h4>errores irreversibles — human-gated siempre</h4>
+      <ul>
+        <li>Todo lo que toca dinero del cliente (cobro sí, custodia jamás)</li>
+        <li>Firma de mandatos y su alcance</li>
+        <li>Pago de garantías arriba de umbral</li>
+        <li>Alta de un SKU nuevo al catálogo</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>El vigía — router, nunca juez <span class="comment">(D03, congelada)</span></h3>
+  <p>Frontera de confianza: la descripción de tarea que llega por API es <b>input hostil</b> (escrita por un agente, que la escribió a partir de un usuario, potencialmente adversarial). El componente que la come no puede tener poder de actuar.</p>
+  <ul class="man">
+    <li>El LLM clasifica la solicitud contra el catálogo → emite <code class="k">sku_id + parámetros</code> o <code class="k">no_clasificable</code>.</li>
+    <li><code class="k">no_clasificable</code> → rechazo o compuerta humana. Nunca "probablemente legal".</li>
+    <li>La autorización real es determinista: ¿mandato vigente? ¿alcance cubre este SKU? ¿tope respetado? ¿agregación en ventana de 6 meses bajo umbral? — todo contra tablas.</li>
+    <li>Anti-estructuración: agregación sobre el log por principal, por destino y por patrón; alertas determinísticas.</li>
+  </ul>
+  <p class="comment"># razón: la allowlist convierte un problema infinito (¿es ilegal?) en uno finito (¿es exactamente esto?). La garantía solo es precificable sobre el espacio finito.</p>
+
+  <h3>Máquina de estados de la acción</h3>
+  <div class="pipe" role="img" aria-label="Estados: solicitada, validada, despachada, en sesión, evidencia entregada, verificada; termina en cerrada, o en fallida que dispara garantía">
+    <span class="st">solicitada</span><span class="arr">→</span>
+    <span class="st">validada</span><span class="arr">→</span>
+    <span class="st">despachada</span><span class="arr">→</span>
+    <span class="st">en_sesión</span><span class="arr">→</span>
+    <span class="st">evidencia_entregada</span><span class="arr">→</span>
+    <span class="st">verificada</span><span class="arr">→</span>
+    <span class="st final">cerrada</span><span class="arr">|</span>
+    <span class="st fail">fallida → garantía</span>
+  </div>
+
+  <h3>Protocolo de sesión — el diferenciador técnico</h3>
+  <p>El agente no postea y espera: comanda, percibe y corrige a mitad de tarea. Ejemplo ilustrativo de una sesión P1:</p>
+  <div class="session" id="proto" data-anim="off">
+    <div class="code" aria-label="Ejemplo ilustrativo de una sesión del protocolo"><span class="line"><span class="dim">$</span> pulpo dispatch <span class="amber">--sku</span> P1.inspeccion_checklist <span class="amber">--mandato</span> M-0042</span>
+<span class="line"><span class="ok">▸ sesión_abierta</span>   actuador=EXE-07 · eta=14:20 · alcance verificado contra mandato</span>
+<span class="line"><span class="dim">▸ obs 14:24</span>  acceso: ok            <span class="dim">[schema inspeccion.v3 · 1/12]</span></span>
+<span class="line"><span class="dim">▸ obs 14:31</span>  cocina/plomería: <span class="err">desviación</span> — fuga leve bajo tarja <span class="dim">[7/12]</span></span>
+<span class="line"><span class="amber">◂ cmd agente:</span> ampliar detalle en 7 <span class="dim"># corrección a mitad de tarea, dentro del alcance del SKU</span></span>
+<span class="line"><span class="dim">▸ obs 14:36</span>  detalle 7: 3 fotos + nota estructurada <span class="dim">[7/12 ✓]</span></span>
+<span class="line"><span class="dim">▸ obs 14:52</span>  checklist completo <span class="dim">[12/12]</span></span>
+<span class="line"><span class="ok">▸ paquete_evidencia</span>  hash=3fa9…c21 · geo ✓ · timestamps ✓ · 27 items</span>
+<span class="line"><span class="ok">▸ verificada</span>  automática por esquema + muestreo humano</span>
+<span class="line"><span class="ok">▸ cerrada</span>  SLA ✓ <span class="dim"># o fallida → garantía: reembolso automático</span></span></div>
+    <button class="replay" id="replayBtn" type="button">▶ reproducir sesión</button>
+  </div>
+  <p class="comment"># privacidad congelada (D13): observación estructurada por default; video/audio crudo solo bajo permiso explícito del SKU + consentimiento; interiores de vivienda solo con elevación explícita del principal.</p>
+
+  <h3>Interfaz Actuador — la decisión que habilita RoboLaborForce</h3>
+  <div class="code">class <span class="ok">Actuador</span>(Protocol):
+    capacidades: set[<span class="amber">Capacidad</span>]  <span class="dim"># desplazarse, manipular, capturar, interactuar, esperar</span>
+    def <span class="ok">ejecutar</span>(self, paso: PasoSOP, sesion: Sesion) -&gt; Observacion: ...
+
+<span class="dim"># ActuadorHumano (v1): app del ejecutor — SOP paso a paso, captura guiada, telemetría.</span>
+<span class="dim"># ActuadorRobot (vN): mismo contrato. Cambio de driver, no refundación.</span></div>
+  <p>Los SOPs se escriben contra pasos atómicos ejecutables por cualquiera de los dos. Cada ejecución humana instrumentada es, por diseño, un episodio etiquetado del corpus.</p>
+
+  <p class="comment"># stack: Python 3.12+ · Pydantic v2 · SQLAlchemy 2.x/Alembic sobre Supabase (Postgres + pgvector) · httpx · pytest con tests golden sobre la lógica core · VPS + systemd · superficie agéntica: MCP server + REST, latente hasta Fase 2. Contención: el LLM router corre aislado, sin credenciales de escritura; ningún componente que come input externo escribe directo a mandatos, pagos o catálogo.</p>
+
+  <div class="aud-note" data-solo-aud="partner"><span class="tag">--audiencia=partner ·</span> integrar es: descubrir el catálogo, invocar una de seis llamadas con un <code class="k">mandato_id</code> vigente, suscribirse al stream de observaciones estructuradas y recibir el paquete de evidencia con hash. El MCP server habla este mismo contrato — beta privada en Fase 2.</div>
+</section>
+
+<section data-nivel-min="4" id="apD">
+  <div class="sec-h"><span class="num">D</span><h2>Ruta crítica</h2><span class="src">docs/07</span></div>
+  <p class="comment"># fechas relativas al mes 0 (arranque de Fase 0). Cada fase define criterios de avance Y de kill ANTES de empezar — para que el resultado no los negocie.</p>
+
+  <div class="fases">
+    <div class="fase">
+      <div class="fh"><b>FASE 0 — laboratorio</b><span class="m">M0–M3</span></div>
+      <div class="obj">Las 6 primitivas v0 con instrumentación total sobre demanda cautiva propia. Cero clientes externos, invisible.</div>
+      <ul>
+        <li>1 celda: 3 alcaldías CDMX alrededor de activos propios (Domum + Airbnb Reforma)</li>
+        <li>2–3 ejecutores semi-fijos (prestadores con RFC, retainer + variable — no gig puro)</li>
+        <li>Software v0: mandatos, máquina de estados, evidencia con hash, app-guía del ejecutor</li>
+        <li>Domum como primer agente comandante vía API interna</li>
+      </ul>
+      <div class="gate"><span class="glabel">GATE →</span><ul>
+        <li>≥150 acciones ejecutadas</li><li>SLA ≥90%</li><li>esquema de evidencia estable 2 semanas</li><li>costo real por acción conocido por SKU</li></ul></div>
+      <div class="kill"><span class="glabel">KILL →</span><ul>
+        <li>SLA &lt;75% sostenido con ejecutores entrenados tras 3 meses: la tesis de determinismo falla → rediseñar antes de gastar en clientes</li></ul></div>
+    </div>
+
+    <div class="fase">
+      <div class="fh"><b>FASE 1 — primer vertical externo</b><span class="m">M4–M9</span></div>
+      <div class="obj">Despachos legales: ingresos externos reales y el endurecimiento de P2/P6 que los verticales regulados comprarán después.</div>
+      <ul>
+        <li>10–20 despachos pequeños/medianos CDMX; venta directa, silenciosa</li>
+        <li>Garantía formal v1 publicada en contrato</li>
+        <li>Partner notarial/actuarial para lo que exige fe pública</li>
+        <li>Dashboard de siniestralidad por primitiva desde la primera acción externa</li>
+      </ul>
+      <div class="gate"><span class="glabel">GATE →</span><ul>
+        <li>margen de contribución positivo por acción</li><li>SLA ≥95%</li><li>≥3 clientes recurrentes con ≥20 acciones/mes</li><li>siniestralidad &lt;3% por primitiva</li></ul></div>
+      <div class="kill"><span class="glabel">KILL →</span><ul>
+        <li>CAC de despachos &gt; 6 meses de su margen: se sustituye el vertical (candidato: marketplaces de usados) sin tocar la operación</li></ul></div>
+    </div>
+
+    <div class="fase">
+      <div class="fh"><b>FASE 2 — superficie agéntica</b><span class="m">M10–M18</span></div>
+      <div class="obj">De operación con software a plataforma con operación.</div>
+      <ul>
+        <li>MCP server + REST API en beta privada: primeros agentes externos comandando acciones reales</li>
+        <li>Router LLM en producción con allowlist completa y anti-estructuración automática</li>
+        <li>Vertical #3 (marketplaces de usados) + retail como relleno de utilización (≤30% de horas)</li>
+        <li>Consentimiento para captura opt-in: primeros episodios del corpus formal</li>
+        <li>Segunda celda solo si la primera satura (&gt;70% utilización, 2 meses)</li>
+      </ul>
+      <div class="gate"><span class="glabel">GATE →</span><ul>
+        <li>≥1,000 acciones/mes</li><li>≥5 agentes externos activos vía API o 2 integraciones B2B agénticas</li><li>utilización ≥55%</li><li>unit economics validados o corregidos</li></ul></div>
+    </div>
+
+    <div class="fase">
+      <div class="fh"><b>FASE 3 — lanzamiento visible</b><span class="m">M18–M24 · 2028</span></div>
+      <div class="obj">Restricción del fundador levantada → marca pública, venta enterprise, diáspora.</div>
+      <ul>
+        <li>Levantamiento de capital CON datos: siniestralidad de 24 meses, corpus en formatos estándar, demanda agéntica demostrada — levantar antes = vender barato la tesis sin la evidencia</li>
+        <li>Decisión de gobernanza/estructura definitiva (se decide aquí, no en Fase 0)</li>
+        <li>Exploración formal de venta de cobertura de habilidades a labs de robótica</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Reglas transversales</h3>
+  <ol class="man">
+    <li>Verticales antes que geografía; geografía solo por saturación.</li>
+    <li>Nada visible ni enterprise antes de 2028.</li>
+    <li>Todo mes sin cliente externo después de M6 es una alarma roja del patrón "expandir búsqueda en vez de actuar".</li>
+    <li>La API pública nunca se publicita antes de que la operación la respalde (lección RentAHuman).</li>
+  </ol>
+</section>
+
+<!-- ============ footer ============ -->
+<footer data-nivel-min="1">
+  <div class="cta" data-solo-aud="inversionista"><span class="tag">$ siguiente paso — inversionista:</span> la conversación de capital está calendarizada en Fase 3 (2028), con 24 meses de siniestralidad y corpus como evidencia. Hasta entonces: seguimiento del blueprint y de los gates de cada fase en este repo.</div>
+  <div class="cta" data-solo-aud="cliente"><span class="tag">$ siguiente paso — cliente:</span> Fase 1 arranca con despachos legales y administradores de propiedades en CDMX: acciones verificables con SLA, evidencia con hash y garantía en contrato. Venta directa y silenciosa — sin marca pública hasta 2028.</div>
+  <div class="cta" data-solo-aud="partner"><span class="tag">$ siguiente paso — partner técnico:</span> la superficie MCP/REST se enciende en Fase 2 en beta privada, sobre operación probada. El contrato de seis llamadas ya está congelado; integrar será cuestión de semanas, no de rediseño.</div>
+
+  <p class="fin"># este pitch se genera desde <b>docs/01–07</b> del blueprint y nunca contradice <b>decisiones/registro.md</b> (D01–D20)<br>
+  # estado: blueprint — pre-build · PULPO es codename provisional (tentáculos físicos para LLMs) · repo: <a href="https://github.com/Pausoriag89/PulpoAPI">github.com/Pausoriag89/PulpoAPI</a><br>
+  # hecho ≠ opinión: lo no verificable está etiquetado · dark/light · texto 0.75x–1.25x · imprimible (el print expande todo)</p>
+</footer>
+
+<div class="manhead" aria-hidden="true" style="padding-bottom:1.2rem">
+  <span>CDMX</span><span>blueprint 2026</span><span>PULPO(1)</span>
+</div>
+
+</div><!-- /page -->
+
+<script>
+(function () {
+  "use strict";
+  var d = document.documentElement;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  /* ---------- estado: nivel · audiencia · tema · escala ---------- */
+  function syncFlags() {
+    var nivel = d.getAttribute("data-nivel");
+    var aud = d.getAttribute("data-aud");
+    document.querySelectorAll("[data-set-nivel]").forEach(function (b) {
+      if (b.classList.contains("flag")) b.setAttribute("aria-checked", String(b.getAttribute("data-set-nivel") === nivel));
+    });
+    document.querySelectorAll(".flag[data-set-aud]").forEach(function (b) {
+      b.setAttribute("aria-checked", String(b.getAttribute("data-set-aud") === aud));
+    });
+  }
+
+  var firstOf = { "2": "n2", "3": "n3-1", "4": "apA" };
+  function setNivel(n, scroll) {
+    var prev = parseInt(d.getAttribute("data-nivel"), 10);
+    d.setAttribute("data-nivel", n);
+    store("pulpo.nivel", n);
+    syncFlags();
+    var ni = parseInt(n, 10);
+    if (scroll && ni > prev && firstOf[n]) {
+      var el = document.getElementById(firstOf[n]);
+      if (el) el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    }
+    if (scroll && ni < prev) window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+  }
+  document.querySelectorAll("[data-set-nivel]").forEach(function (b) {
+    b.addEventListener("click", function () { setNivel(b.getAttribute("data-set-nivel"), true); });
+  });
+
+  document.querySelectorAll(".flag[data-set-aud]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      d.setAttribute("data-aud", b.getAttribute("data-set-aud"));
+      store("pulpo.aud", b.getAttribute("data-set-aud"));
+      syncFlags();
+    });
+  });
+
+  document.getElementById("tema").addEventListener("click", function () {
+    var t = d.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    d.setAttribute("data-theme", t);
+    store("pulpo.tema", t);
+  });
+
+  var slider = document.getElementById("escala");
+  try {
+    var saved = parseFloat(localStorage.getItem("pulpo.escala"));
+    if (saved >= 0.75 && saved <= 1.25) slider.value = saved;
+  } catch (e) {}
+  slider.addEventListener("input", function () {
+    d.style.fontSize = (16 * parseFloat(slider.value)) + "px";
+    store("pulpo.escala", slider.value);
+  });
+
+  /* chips de primitivas → apéndice A */
+  document.querySelectorAll(".chip[data-goto]").forEach(function (c) {
+    c.addEventListener("click", function () {
+      setNivel("4", false);
+      var el = document.getElementById(c.getAttribute("data-goto"));
+      if (el) el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    });
+  });
+
+  syncFlags();
+
+  /* ---------- typing del hero ---------- */
+  var typed = document.getElementById("typed");
+  var one = document.getElementById("oneliner");
+  if (!reduced && typed) {
+    var full = typed.textContent;
+    typed.textContent = "";
+    one.style.opacity = "0";
+    one.style.transition = "opacity 0.5s";
+    var i = 0;
+    (function tick() {
+      if (i <= full.length) {
+        typed.textContent = full.slice(0, i);
+        i++;
+        setTimeout(tick, 34 + Math.floor(i % 3) * 14);
+      } else {
+        setTimeout(function () { one.style.opacity = "1"; }, 140);
+      }
+    })();
+  }
+
+  /* ---------- playback del protocolo de sesión ---------- */
+  var proto = document.getElementById("proto");
+  var replayBtn = document.getElementById("replayBtn");
+  var lines = proto ? proto.querySelectorAll(".line") : [];
+  var playing = false;
+  function playProto() {
+    if (reduced || playing || !lines.length) return;
+    playing = true;
+    proto.setAttribute("data-anim", "on");
+    lines.forEach(function (l) { l.classList.remove("on"); });
+    var i = 0;
+    (function step() {
+      if (i < lines.length) {
+        lines[i].classList.add("on");
+        i++;
+        setTimeout(step, i === 1 ? 500 : 420);
+      } else {
+        playing = false;
+      }
+    })();
+  }
+  if (replayBtn) {
+    if (reduced) { replayBtn.style.display = "none"; }
+    else {
+      replayBtn.addEventListener("click", playProto);
+      var seen = false;
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting && !seen) { seen = true; playProto(); io.disconnect(); }
+        });
+      }, { threshold: 0.35 });
+      io.observe(proto);
+    }
+  }
+
+  /* ---------- chart de multiplexeo (opinión, ilustrativo) ---------- */
+  var HORAS = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+  var SERIES = [
+    { id: "inmobiliario", css: "--s1", data: [6,14,24,27,25,20,14,15,21,25,22,13,7,4,2] },
+    { id: "legal",        css: "--s2", data: [2,6,15,20,18,13,9,7,11,14,11,5,2,1,0] },
+    { id: "retail",       css: "--s3", data: [0,1,4,8,14,18,20,18,16,17,19,21,18,12,6] },
+    { id: "otros",        css: "--s4", data: [8,8,8,9,9,10,10,10,9,9,10,11,12,11,9] }
+  ];
+  var svg = document.getElementById("muxSvg");
+  if (svg) {
+    var W = 720, H = 300, L = 44, R = 16, T = 14, B = 30;
+    var YMAX = 80;
+    var iw = W - L - R, ih = H - T - B;
+    function x(i) { return L + (i / (HORAS.length - 1)) * iw; }
+    function y(v) { return T + ih - (v / YMAX) * ih; }
+    var NS = "http://www.w3.org/2000/svg";
+    function el(tag, attrs, parent) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    }
+    /* grid + ejes */
+    [0, 20, 40, 60, 80].forEach(function (g) {
+      el("line", { x1: L, x2: W - R, y1: y(g), y2: y(g), stroke: "var(--line)", "stroke-width": 1 });
+      el("text", { x: L - 7, y: y(g) + 4, "text-anchor": "end", fill: "var(--faint)", "font-size": 10.5, "font-family": "inherit" }).textContent = g + "%";
+    });
+    HORAS.forEach(function (h, i) {
+      if (h % 2 !== 1) return;
+      el("text", { x: x(i), y: H - 9, "text-anchor": "middle", fill: "var(--faint)", "font-size": 10.5, "font-family": "inherit" }).textContent = (h < 10 ? "0" : "") + h + ":00";
+    });
+    /* áreas apiladas (gap de 2px con stroke del surface en el borde superior) */
+    var cum = HORAS.map(function () { return 0; });
+    var stackTops = [];
+    SERIES.forEach(function (s) {
+      var base = cum.slice();
+      var top = cum.map(function (c, i) { return c + s.data[i]; });
+      var p = "M" + x(0) + " " + y(top[0]);
+      for (var i = 1; i < HORAS.length; i++) p += " L" + x(i) + " " + y(top[i]);
+      for (var j = HORAS.length - 1; j >= 0; j--) p += " L" + x(j) + " " + y(base[j]);
+      p += " Z";
+      el("path", { d: p, fill: "var(" + s.css + ")", "fill-opacity": 0.82 });
+      var tl = "M" + x(0) + " " + y(top[0]);
+      for (var k = 1; k < HORAS.length; k++) tl += " L" + x(k) + " " + y(top[k]);
+      el("path", { d: tl, fill: "none", stroke: "var(--bg2)", "stroke-width": 2 });
+      cum = top;
+      stackTops.push(top);
+    });
+    /* labels directos dentro de cada banda, en su punto más ancho */
+    SERIES.forEach(function (s, si) {
+      var best = 0, bi = 0;
+      s.data.forEach(function (v, i) { if (v > best) { best = v; bi = i; } });
+      var mid = (stackTops[si][bi] + (si === 0 ? 0 : stackTops[si - 1][bi])) / 2 + (si === 0 ? stackTops[0][bi] * 0 : 0);
+      var yy = si === 0 ? y(stackTops[0][bi] / 2) : y((stackTops[si][bi] + stackTops[si - 1][bi]) / 2);
+      var t = el("text", { x: x(bi), y: yy + 4, "text-anchor": "middle", fill: "#fff", "font-size": 11, "font-weight": 700, "font-family": "inherit", "paint-order": "stroke", stroke: "rgba(0,0,0,0.45)", "stroke-width": 3 });
+      t.textContent = s.id;
+    });
+    /* leyenda */
+    var leg = document.getElementById("muxLegend");
+    SERIES.forEach(function (s) {
+      var li = document.createElement("span");
+      li.className = "li";
+      li.innerHTML = '<span class="sw" style="background:var(' + s.css + ')"></span>' + s.id;
+      leg.appendChild(li);
+    });
+    /* tabla (vista alterna) */
+    var tw = document.getElementById("muxTable");
+    var th = "<table><thead><tr><th>hora</th>" + SERIES.map(function (s) { return "<th>" + s.id + "</th>"; }).join("") + "<th>total</th></tr></thead><tbody>";
+    HORAS.forEach(function (h, i) {
+      var tot = SERIES.reduce(function (a, s) { return a + s.data[i]; }, 0);
+      th += "<tr><td>" + (h < 10 ? "0" : "") + h + ":00</td>" + SERIES.map(function (s) { return "<td>" + s.data[i] + "%</td>"; }).join("") + "<td><span class='n'>" + tot + "%</span></td></tr>";
+    });
+    tw.innerHTML = th + "</tbody></table>";
+    /* hover: crosshair + tooltip */
+    var wrap = document.getElementById("muxWrap");
+    var tip = document.getElementById("muxTip");
+    var cross = el("line", { x1: 0, x2: 0, y1: T, y2: T + ih, stroke: "var(--faint)", "stroke-width": 1, "stroke-dasharray": "3 3", opacity: 0 });
+    var hit = el("rect", { x: L, y: T, width: iw, height: ih, fill: "transparent" });
+    function showTip(evt) {
+      var r = svg.getBoundingClientRect();
+      var sx = (evt.clientX - r.left) * (W / r.width);
+      var i = Math.round(((sx - L) / iw) * (HORAS.length - 1));
+      i = Math.max(0, Math.min(HORAS.length - 1, i));
+      cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i));
+      cross.setAttribute("opacity", 1);
+      var tot = SERIES.reduce(function (a, s) { return a + s.data[i]; }, 0);
+      var html = "<b>" + (HORAS[i] < 10 ? "0" : "") + HORAS[i] + ":00</b>";
+      SERIES.forEach(function (s) {
+        html += '<div class="row"><span class="sw" style="background:var(' + s.css + ')"></span>' + s.id + " · " + s.data[i] + "%</div>";
+      });
+      html += '<div class="row" style="color:var(--amber)">total · ' + tot + "%</div>";
+      tip.innerHTML = html;
+      tip.style.opacity = 1;
+      var wr = wrap.getBoundingClientRect();
+      var px = evt.clientX - wr.left + 14;
+      if (px + 150 > wr.width) px = evt.clientX - wr.left - 160;
+      tip.style.left = px + "px";
+      tip.style.top = Math.max(0, evt.clientY - wr.top - 40) + "px";
+    }
+    function hideTip() { cross.setAttribute("opacity", 0); tip.style.opacity = 0; }
+    hit.addEventListener("mousemove", showTip);
+    hit.addEventListener("mouseleave", hideTip);
+    hit.addEventListener("click", showTip);
+  }
+})();
+</script>
+
+</body>
+</html>
