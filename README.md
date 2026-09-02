@@ -1,6 +1,6 @@
 # PULPO — capa de actuación física para agentes de IA
 
-> Codename provisional (tentáculos físicos para LLMs). Renombrar cuando exista marca.
+> Marca: **IAIdea Factory** (D25, 2026-09). PULPO permanece como codename interno de este repo y no aparece en superficies públicas.
 
 Repo privado de diseño y registro del proyecto. Estado: **blueprint — pre-build**.
 
@@ -34,7 +34,8 @@ Hoy las acciones físicas las hacen humanos. Si instrumentamos y mapeamos **cóm
 | `docs/08-legal.md` | Restricciones congeladas y fronteras | Referencia |
 | `docs/09-gobernanza-ABIERTA.md` | Estructura accionaria — **decisión abierta** | Proceso |
 | `decisiones/registro.md` | Log de decisiones con su razón | Proceso |
-| `pitch/` | HTML interactivo del pitch (pendiente) | Output |
+| `pitch/` | HTML interactivo del pitch | Output |
+| `landing/` | Especificación de ejecución de la landing de IAIdea Factory | Output |
 
 ## Reglas del repo
 
