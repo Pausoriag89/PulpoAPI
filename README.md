@@ -27,6 +27,7 @@ Hoy las acciones físicas las hacen humanos. Si instrumentamos y mapeamos **cóm
 | `docs/02-timing.md` | Por qué en 2 años y por qué empezar hoy | Referencia |
 | `docs/03-primitivas.md` | Las 6 primitivas SKU — base fundacional | Referencia |
 | `docs/04-economics.md` | Unit economics, multiplexeo, garantía | Referencia |
+| `docs/04b-unit-economics.md` | Modelo de breakeven v0 y qué falta medir | Referencia |
 | `docs/05-arquitectura.md` | Capas, vigía, mandatos, protocolo de sesión | Referencia |
 | `docs/06-datos-moat.md` | Los 3 niveles del dato y la migración a robots | Referencia |
 | `docs/07-ruta-critica.md` | Fases 0–3, hitos, criterios kill/scale | Proceso |
