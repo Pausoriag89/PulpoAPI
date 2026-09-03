@@ -48,6 +48,7 @@ La tabla siguiente reúne las decisiones que este documento aplica. Cada una est
 | Precios | Precio de lista $500 MXN por tarea. Paquetes de 10, 50, 100, 200 y 1,000 tareas con descuento máximo de 25%. El paquete de 1,000 se vende solo con contrato | D28 |
 | Cupo y vigencia | 1,000 tareas de cupo total para la beta; paquetes con vigencia de 12 meses desde el inicio de la beta; reembolso total si la beta no abre | D28 |
 | Elegibilidad | Empresas y personas físicas. Pago por transferencia SPEI y tarjeta. Factura CFDI en todo pedido. El cobro a personas físicas abre solo tras la revisión legal de consumo | D29 |
+| Dominio | `iaidea.ai`, ya registrado. Host canónico sin `www`; `www.iaidea.ai` redirige al apex. Correo corporativo en el mismo dominio | — |
 | Idioma | Solo español en v1 | — |
 | Celda inicial | Cuauhtémoc, Miguel Hidalgo y Benito Juárez, por confirmar contra la ubicación real de los activos de Fase 0 | — |
 | Operadores | Sin bloque de reclutamiento hasta la opinión laboral | — |
@@ -366,6 +367,7 @@ La página es pública e indexable desde el primer día. Requisitos mínimos:
 
 - Título: "IAIdea Factory — Acciones físicas verificables con garantía en CDMX". Descripción de menos de 160 caracteres con las palabras: inspección, entrega con acuse, firma, gestión, evidencia, garantía, Ciudad de México.
 - Un solo H1 por página, igual al título del hero en modo cliente. Encabezados H2 para cada sección del mapa.
+- Host canónico: `https://iaidea.ai`, sin `www`. Toda URL canónica y el campo `url` de los datos estructurados usan ese host.
 - URLs: `/` landing, `/pitch` manual del operador, `/terminos`, `/privacidad`, `/garantia`, `/mandato`. Sin parámetros en las URL canónicas; el selector de audiencia usa `?a=` y declara canónica la URL sin parámetro.
 - `sitemap.xml` con las seis URL. `robots.txt` abierto.
 - Datos estructurados JSON-LD: `Organization`, `Service` con `areaServed` en las tres alcaldías, y `FAQPage` con las diez preguntas.
@@ -388,9 +390,24 @@ La landing captura correos, reserva paquetes y cobra, así que no es un archivo 
 | Factura | Emisión manual de CFDI durante la beta; automatizar con Facturama después de 50 pedidos | Volumen bajo al inicio |
 | Correo | Resend para transaccional y newsletter, con doble opt-in | Segmentos sin plataforma pesada |
 | Analítica | Plausible | Sin cookies de terceros |
-| Dominio | `POR_DEFINIR`: verificar disponibilidad de iaideafactory.com y iaideafactory.mx | Marca nueva |
+| Dominio | `iaidea.ai`, registrado. DNS según la subsección siguiente | La marca IAIdea Factory vive en `iaidea.ai`; el pitch en `iaidea.ai/pitch` |
 
 Variables de entorno esperadas: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ESTADO_PAGINA` con uno de los cuatro estados. Ninguna clave va en el HTML.
+
+### DNS de `iaidea.ai`
+
+El dominio ya está registrado. Configura estos registros antes de publicar; los valores exactos los entrega cada proveedor al conectar el dominio:
+
+| Registro | Nombre | Para qué | Quién da el valor |
+|---|---|---|---|
+| A o ALIAS | `@` | Servir la landing en el apex | Vercel, al añadir el dominio al proyecto |
+| CNAME | `www` | Redirigir `www.iaidea.ai` al apex | Vercel; activa la redirección en el proyecto |
+| MX | `@` | Recibir correo en `contacto@iaidea.ai` | El proveedor del buzón (Google Workspace o equivalente) |
+| TXT | `@` | SPF: autoriza al buzón y a Resend a enviar por el dominio | Combinar los `include` del buzón y de Resend en un solo registro |
+| CNAME o TXT | según Resend | DKIM: firma los correos transaccionales y el newsletter | Resend, al verificar el dominio |
+| TXT | `_dmarc` | DMARC en modo `p=none` durante la beta, con reporte a un buzón propio | Redactar a mano |
+
+Aceptación: `https://iaidea.ai` sirve la página con certificado válido, `https://www.iaidea.ai` redirige al apex, Resend muestra el dominio verificado, y un correo de prueba desde `contacto@iaidea.ai` llega a un buzón externo sin caer en spam.
 
 ## Diseño visual
 
@@ -404,7 +421,7 @@ Antes de escribir código, quien construya presenta tres variantes del hero y de
 
 Construye en este orden. Cada paso tiene un entregable y un criterio de aceptación:
 
-1. **Dominio y correo corporativo.** Entregable: dominio registrado y un buzón de contacto. Aceptación: el buzón recibe correo.
+1. **DNS y correo corporativo.** El dominio `iaidea.ai` ya está registrado. Entregable: los registros de la subsección "DNS de `iaidea.ai`" y el buzón `contacto@iaidea.ai`. Aceptación: la de esa subsección.
 2. **Aviso de privacidad.** Entregable: texto revisado por abogado, publicado en `/privacidad`. Aceptación: cubre los tres roles y el newsletter. Bloquea la publicación.
 3. **Base de datos.** Entregable: las cinco tablas con sus políticas. Aceptación: el contador de cupo se lee sin credenciales y ninguna tabla se escribe sin función servidor.
 4. **Página estática completa.** Entregable: las 15 secciones con el copy de este documento, el selector de audiencia y los tres modos. Aceptación: la lista de verificación de la sección siguiente pasa completa en escritorio y en 375 píxeles de ancho.
@@ -434,7 +451,7 @@ La tabla siguiente cruza esta especificación con los pendientes legales de `doc
 | Ítem | Bloquea | Dueño | Cuándo |
 |---|---|---|---|
 | Aviso de privacidad por rol | Publicación de etapa 1 | abogado | Antes de publicar |
-| Dominio y correo corporativo | Publicación de etapa 1 | Pablo | Antes de publicar |
+| Correo corporativo en `iaidea.ai` y acceso al DNS para quien construya | Publicación de etapa 1 | Pablo | Antes de publicar |
 | Confirmación de las tres alcaldías de la celda | Sección de cobertura | Pablo | Antes de publicar |
 | Términos de la beta: reserva, vigencia, reembolso, cupo | Estado `etapa_2_empresas` | abogado | Antes de M4 |
 | Contrato marco de mandato y términos de garantía | Estado `etapa_2_empresas` | abogado | Antes de M4, ya listado en `docs/08-legal.md` |
