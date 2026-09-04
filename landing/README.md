@@ -59,7 +59,7 @@ La tabla siguiente reúne las decisiones que este documento aplica. Cada una est
 Estas restricciones son obligatorias y vienen de decisiones legales congeladas del blueprint:
 
 - No nombra al fundador, no muestra su foto, no enlaza su perfil ni menciona a su empleador.
-- No publica documentación de API, ni sandbox, ni fechas de la API. La API existe solo como lista de espera.
+- No publica referencia de endpoints, autenticación, sandbox ni fechas de la API. Publica el contrato conceptual en `/docs`, que ya es público en el manual del operador; la API como producto existe solo como lista de espera.
 - No promete velocidad, cobertura o resultados con superlativos. No usa "garantiza" fuera del término contractual "garantía".
 - No menciona manejo de efectivo, ni ofrece pagos a terceros por cuenta del cliente fuera del canal digital de la plataforma.
 - No ofrece actos de fe pública, notificaciones judiciales ni oficios técnicos como servicios propios.
@@ -85,7 +85,7 @@ La página tiene un selector con tres audiencias y **cliente** como default: cli
 |---|---|---|---|---|
 | Cliente | Despachos legales, administradores de propiedades, operadores de renta corta y personas que necesitan una gestión física en CDMX | Acciones físicas con evidencia y garantía | Reservar paquete de beta | Cómo funciona, catálogo, casos de uso, paquetes |
 | Inversionista | Inversionista ángel o fondo con interés en infraestructura de IA física en LatAm | La capa de actuación física para agentes de IA en LatAm | Recibir el informe mensual | Por qué ahora, el moat, el modelo, la ruta |
-| Partner | Quien construye agentes o plataformas y necesita ejecución física | Seis llamadas para darle manos a un agente | Entrar a la lista de espera de la API | Cómo funciona, protocolo, lista de espera |
+| Partner | Quien construye agentes o plataformas y necesita ejecución física | Seis llamadas para darle manos a un agente | Entrar a la lista de espera de la API | Cómo funciona, documentación técnica, lista de espera |
 
 El selector persiste en `localStorage` y se refleja en la URL con el parámetro `?a=cliente|inversionista|partner`, para que un enlace compartido abra en el modo correcto.
 
@@ -119,9 +119,10 @@ La tabla siguiente fija el orden de la página, el trabajo que cumple cada secci
 | 9 | Cobertura y calendario | expectativas | `docs/07-ruta-critica.md` |
 | 10 | Para inversionistas | pitch | `docs/01`, `02`, `06`, `04b`, `pitch/` |
 | 11 | Para partners y agentes | lista de espera | `docs/05`, D07 |
-| 12 | Newsletter | newsletter | — |
-| 13 | Preguntas frecuentes | confianza, legal | `docs/08-legal.md` |
-| 14 | Pie legal | legal | `docs/08-legal.md` |
+| 12 | Documentación técnica | concepto, lista de espera | `docs/03`, `docs/05`, D30 |
+| 13 | Newsletter | newsletter | — |
+| 14 | Preguntas frecuentes | confianza, legal | `docs/08-legal.md` |
+| 15 | Pie legal | legal | `docs/08-legal.md` |
 
 ## Especificación por sección
 
@@ -129,7 +130,7 @@ La tabla siguiente fija el orden de la página, el trabajo que cumple cada secci
 
 **Objetivo.** Que la reserva y el cambio de audiencia estén siempre a un clic.
 
-**Contenido.** Marca IAIdea Factory a la izquierda. Enlaces: Cómo funciona, Catálogo, Paquetes, Inversionistas, Newsletter. Selector de audiencia. Botón persistente a la derecha.
+**Contenido.** Marca IAIdea Factory a la izquierda. Enlaces: Cómo funciona, Catálogo, Paquetes, Docs, Inversionistas, Newsletter. Selector de audiencia. Botón persistente a la derecha.
 
 **Estados del botón.** En etapa 1: **Reservar lugar en la beta**. En etapa 2: **Comprar paquete**. Con la beta en curso: **Pedir una tarea**. Con el cupo agotado: **Entrar a la lista de espera**.
 
@@ -301,7 +302,17 @@ Cierre: "La coordinación por WhatsApp no deja evidencia, no tiene nivel de serv
 
 **Copy propuesto.** "Seis llamadas: observar, transferir, representar, supervisar, obtener y acreditar. Cada una corre bajo un mandato con alcance y topes, abre una sesión con observaciones estructuradas y cierra con un paquete de evidencia con hash. La API y el servidor MCP se encienden sobre una operación probada. La lista de espera define el orden de acceso."
 
-**Formulario.** Correo, nombre de la organización, qué agente o plataforma operas, qué primitiva necesitas primero. Sin documentación, sin sandbox, sin fecha.
+**Formulario.** Correo, nombre de la organización, qué agente o plataforma operas, qué primitiva necesitas primero. Sin referencia de endpoints, sin sandbox, sin fecha. El contrato conceptual vive en `/docs`.
+
+### Documentación técnica
+
+**Objetivo.** Señalar que el contrato del servicio es público y llevar a `/docs`, sin publicitar una API disponible.
+
+**Copy propuesto.** Título: "Documentación técnica". Texto: "El contrato del servicio es público: las seis primitivas con sus parámetros y su evidencia, el protocolo de sesión, el modelo de mandato y el paquete de evidencia. La referencia de la API se publica con su beta privada." Botón: **Leer la documentación**. Tres enlaces cortos: Primitivas, Sesión, Evidencia.
+
+**Componentes.** Un bloque con el título, el texto, el botón y los tres enlaces. Una firma de ejemplo en fuente monoespaciada, tomada de `/docs/primitivas`: `observar(objetivo, checklist, nivel_detalle, sesion_viva=False)`.
+
+**Notas.** La landing no muestra endpoints ni código de integración; el bloque de sesión de la sección "Cómo funciona una tarea" ya enseña el protocolo. En modo partner, esta sección se destaca junto con la lista de espera.
 
 ### Newsletter
 
@@ -325,10 +336,37 @@ Cierre: "La coordinación por WhatsApp no deja evidencia, no tiene nivel de serv
 8. **¿Hacen trámites que requieren notario?** "No como servicio propio. Acreditamos el hecho y preparamos el expediente; el notario o el actuario ponen el acto."
 9. **¿Puedo comprar como persona física?** "Sí. El cobro para personas físicas abre cuando se complete la revisión legal de consumo; mientras tanto puedes reservar sin cargo."
 10. **¿Cómo facturan?** "Factura CFDI en todo pedido, a empresa o a persona física con RFC. Sin RFC, factura a público en general."
+11. **¿Tienen API?** "Está en lista de espera. El contrato del servicio ya es público en la documentación técnica; la referencia de endpoints y el sandbox se publican con la beta privada de la API."
 
 ### Pie legal
 
 **Contenido.** "IAIdea Factory · Ciudad de México". Enlaces: aviso de privacidad, términos de la beta, términos de la garantía, contrato marco de mandato. Correo de contacto corporativo. Sin redes sociales en v1. Sin nombre de personas.
+
+## Ruta `/docs`: documentación técnica
+
+**Objetivo.** Dar a partners y a quien construye agentes el contrato conceptual del servicio desde la v1 de la landing, y dejar lista la estructura donde se publica la referencia de la API cuando exista su beta privada, sin publicitar una API que no opera.
+
+**Regla.** `/docs` documenta el contrato, no el producto API. Hasta la beta de la API no contiene endpoints, URL base, autenticación, claves, límites de uso, sandbox ni fechas. La regla viene de D07, de la regla 4 de `docs/07-ruta-critica.md` y de D30.
+
+**Banner de estado.** Toda página de `/docs` abre con el mismo aviso: "La API está en lista de espera. Esta documentación describe el contrato del servicio. La referencia de endpoints, la autenticación y el sandbox se publican con la beta privada de la API." Con el botón **Entrar a la lista de espera de la API**.
+
+**Estructura.** Un índice con barra lateral y cinco páginas. La tabla siguiente define cada una:
+
+| Página | URL | Contenido | Fuente |
+|---|---|---|---|
+| Índice | `/docs` | Qué es el contrato, cómo leer las páginas, el banner y la lista "Qué se publica con la beta de la API" | — |
+| Primitivas | `/docs/primitivas` | Las seis llamadas con firma, parámetros, evidencia que devuelven, quién las consume y fronteras; la región operativa v1 | `docs/03-primitivas.md` |
+| Sesión | `/docs/sesion` | El protocolo: dispatch, sesión abierta, observaciones estructuradas por default, comandos de corrección dentro del alcance, paquete de evidencia, verificación, cierre o garantía; la máquina de estados de la tarea | `docs/05-arquitectura.md` |
+| Mandato y autorización | `/docs/mandato` | La cadena de autoridad: principal humano, mandato con alcance y topes, plataforma como mandataria, operador; el agente como canal de instrucción; clasificación contra el catálogo y autorización determinista; qué pasa con una solicitud no clasificable | `docs/05`, `docs/08-legal.md` R3 |
+| Evidencia | `/docs/evidencia` | El paquete por tarea: geolocalización, timestamps, media, lista de verificación, firmas; el hash encadenado y cómo verificarlo; privacidad por default | `docs/05`, D13 |
+
+**Lista "Qué se publica con la beta de la API".** Visible en el índice, sin fechas: referencia REST, servidor MCP, autenticación, mandatos por API, webhooks de sesión, códigos de error, límites de uso, ejemplos por primitiva y registro de cambios.
+
+**Copy propuesto del índice.** "Este es el contrato de IAIdea Factory: qué puedes pedir, cómo corre una tarea, quién autoriza qué y qué evidencia recibes. Es el mismo contrato que usa un cliente desde el portal y el que usará un agente desde la API. La referencia de endpoints llega con la beta privada de la API."
+
+**Formato y herramientas.** HTML estático con la misma base visual de la landing y una barra lateral compartida. Las firmas y el protocolo se muestran en bloques de código en fuente monoespaciada, con el mismo estilo del bloque de sesión del pitch. Sin sandbox interactivo. Cuando exista la API, la referencia se genera desde una especificación OpenAPI con una herramienta de documentación estática, por ejemplo Scalar o Redoc en build estático, y se publica en `/docs/api`; la del servidor MCP, en `/docs/mcp`. El contrato conceptual no cambia al publicar la referencia: se enlaza desde él.
+
+**Aceptación.** Cero menciones de endpoints, URL base, claves, límites o fechas. Banner en todas las páginas. Cada firma coincide con `docs/03-primitivas.md`. Enlaces desde la barra de navegación, desde la sección "Documentación técnica" de la landing y desde la sección de partners. Las cinco páginas están en el sitemap.
 
 ## Formularios y datos
 
@@ -368,9 +406,9 @@ La página es pública e indexable desde el primer día. Requisitos mínimos:
 - Título: "IAIdea Factory — Acciones físicas verificables con garantía en CDMX". Descripción de menos de 160 caracteres con las palabras: inspección, entrega con acuse, firma, gestión, evidencia, garantía, Ciudad de México.
 - Un solo H1 por página, igual al título del hero en modo cliente. Encabezados H2 para cada sección del mapa.
 - Host canónico: `https://iaidea.ai`, sin `www`. Toda URL canónica y el campo `url` de los datos estructurados usan ese host.
-- URLs: `/` landing, `/pitch` manual del operador, `/terminos`, `/privacidad`, `/garantia`, `/mandato`. Sin parámetros en las URL canónicas; el selector de audiencia usa `?a=` y declara canónica la URL sin parámetro.
-- `sitemap.xml` con las seis URL. `robots.txt` abierto.
-- Datos estructurados JSON-LD: `Organization`, `Service` con `areaServed` en las tres alcaldías, y `FAQPage` con las diez preguntas.
+- URLs: `/` landing, `/pitch` manual del operador, `/terminos`, `/privacidad`, `/garantia`, `/mandato`, `/docs` y sus cinco páginas. Sin parámetros en las URL canónicas; el selector de audiencia usa `?a=` y declara canónica la URL sin parámetro.
+- `sitemap.xml` con todas las URL públicas, incluidas las de `/docs`. `robots.txt` abierto.
+- Datos estructurados JSON-LD: `Organization`, `Service` con `areaServed` en las tres alcaldías, y `FAQPage` con las once preguntas.
 - Open Graph y Twitter Card con imagen propia de 1200 × 630 píxeles y el título del hero.
 - Rendimiento: menos de 100 KB de HTML, CSS y JavaScript propios, sin fuentes externas, sin frameworks. Imágenes en SVG o WebP.
 - Idioma declarado `es-MX`.
@@ -424,13 +462,14 @@ Construye en este orden. Cada paso tiene un entregable y un criterio de aceptaci
 1. **DNS y correo corporativo.** El dominio `iaidea.ai` ya está registrado. Entregable: los registros de la subsección "DNS de `iaidea.ai`" y el buzón `contacto@iaidea.ai`. Aceptación: la de esa subsección.
 2. **Aviso de privacidad.** Entregable: texto revisado por abogado, publicado en `/privacidad`. Aceptación: cubre los tres roles y el newsletter. Bloquea la publicación.
 3. **Base de datos.** Entregable: las cinco tablas con sus políticas. Aceptación: el contador de cupo se lee sin credenciales y ninguna tabla se escribe sin función servidor.
-4. **Página estática completa.** Entregable: las 15 secciones con el copy de este documento, el selector de audiencia y los tres modos. Aceptación: la lista de verificación de la sección siguiente pasa completa en escritorio y en 375 píxeles de ancho.
-5. **Formularios de etapa 1.** Entregable: newsletter con doble opt-in, reserva sin cargo, lista de espera de API y solicitud de contrato para el paquete Ancla. Aceptación: cada flujo envía su correo y escribe su registro; el cupo baja con cada reserva confirmada.
-6. **SEO y rendimiento.** Entregable: metadatos, JSON-LD, sitemap, robots, Open Graph. Aceptación: menos de 100 KB propios y sin peticiones a terceros salvo Plausible y las funciones propias.
-7. **Publicación de etapa 1.** Entregable: la página en el dominio con `ESTADO_PAGINA=etapa_1`. Aceptación: reserva de prueba completa de extremo a extremo.
-8. **Pitch con la marca nueva.** Entregable: `pitch/index.html` con IAIdea Factory en lugar de PULPO, servido en `/pitch`. Aceptación: cero menciones de PULPO en el pitch.
-9. **Checkout de etapa 2.** Entregable: Stripe Checkout, referencia SPEI, webhook que marca pedidos pagados y correo de confirmación. Aceptación: un pago de prueba en modo test convierte una reserva y envía el correo. No se activa sin los requisitos del estado `etapa_2_empresas`.
-10. **Etapa 2 completa.** Entregable: cobro a personas físicas activado con los términos de consumo revisados. Aceptación: el abogado firma la revisión.
+4. **Página estática completa.** Entregable: las 16 secciones con el copy de este documento, el selector de audiencia y los tres modos. Aceptación: la lista de verificación de la sección siguiente pasa completa en escritorio y en 375 píxeles de ancho.
+5. **Documentación técnica conceptual en `/docs`.** Entregable: el índice y las cinco páginas de la sección "Ruta `/docs`" con el banner de estado y la barra lateral. Aceptación: cero menciones de endpoints, URL base, claves o fechas; cada firma coincide con `docs/03-primitivas.md`; enlaces desde la barra de navegación y desde la sección de partners.
+6. **Formularios de etapa 1.** Entregable: newsletter con doble opt-in, reserva sin cargo, lista de espera de API y solicitud de contrato para el paquete Ancla. Aceptación: cada flujo envía su correo y escribe su registro; el cupo baja con cada reserva confirmada.
+7. **SEO y rendimiento.** Entregable: metadatos, JSON-LD, sitemap, robots, Open Graph. Aceptación: menos de 100 KB propios y sin peticiones a terceros salvo Plausible y las funciones propias.
+8. **Publicación de etapa 1.** Entregable: la página en el dominio con `ESTADO_PAGINA=etapa_1`. Aceptación: reserva de prueba completa de extremo a extremo.
+9. **Pitch con la marca nueva.** Entregable: `pitch/index.html` con IAIdea Factory en lugar de PULPO, servido en `/pitch`. Aceptación: cero menciones de PULPO en el pitch.
+10. **Checkout de etapa 2.** Entregable: Stripe Checkout, referencia SPEI, webhook que marca pedidos pagados y correo de confirmación. Aceptación: un pago de prueba en modo test convierte una reserva y envía el correo. No se activa sin los requisitos del estado `etapa_2_empresas`.
+11. **Etapa 2 completa.** Entregable: cobro a personas físicas activado con los términos de consumo revisados. Aceptación: el abogado firma la revisión.
 
 ## Lista de verificación de aceptación
 
@@ -438,6 +477,7 @@ Antes de publicar cada etapa, comprueba:
 
 - Contenido: cada cifra de la página está en este documento; ninguna sección tiene `POR_DEFINIR` visible; el copy pasa las reglas de la sección "Reglas de copy".
 - Legal: no aparece ningún nombre de persona; no hay mención a efectivo, fe pública ni oficios como servicios propios; los cuatro documentos legales están enlazados y existen.
+- Documentación: ninguna página de `/docs` contiene endpoints, URL base, claves, límites de uso ni fechas; todas muestran el banner de estado de la API.
 - Funcional: los tres modos de audiencia cambian hero, bloques y botones; el selector persiste y se refleja en `?a=`; el contador de cupo lee de la base; cada formulario escribe y envía correo; el estado global cambia con una sola variable.
 - Accesibilidad: contraste AA en ambos temas, foco visible, formularios con etiquetas, texto alternativo en toda ilustración, navegación completa con teclado.
 - SEO: un H1, metadatos, JSON-LD válido, sitemap y robots accesibles, canónica sin parámetros.
@@ -457,7 +497,7 @@ La tabla siguiente cruza esta especificación con los pendientes legales de `doc
 | Contrato marco de mandato y términos de garantía | Estado `etapa_2_empresas` | abogado | Antes de M4, ya listado en `docs/08-legal.md` |
 | Entidad legal constituida y cuenta bancaria para SPEI | Estado `etapa_2_empresas` | fiscalista y corporativo | Fase 0 |
 | Revisión de consumo para personas físicas: términos de anticipo, cancelación y, si aplica, registro del contrato de adhesión | Estado `etapa_2_completa` | abogado | Antes de abrir el cobro a personas físicas |
-| Actualización del pitch a la marca IAIdea Factory | Enlace a `/pitch` | quien construya | Paso 8 del orden de construcción |
+| Actualización del pitch a la marca IAIdea Factory | Enlace a `/pitch` | quien construya | Paso 9 del orden de construcción |
 | Instrumentación de Fase 0 para alimentar el newsletter | Primera edición del newsletter | Pablo | M0 |
 
 ## Pendientes fuera del alcance de la landing
@@ -465,6 +505,7 @@ La tabla siguiente cruza esta especificación con los pendientes legales de `doc
 Estos temas quedan registrados para no olvidarlos, y no bloquean la construcción:
 
 - Tarea suelta para personas físicas, fuera de paquete. Se evalúa con datos de la beta.
+- Referencia de endpoints generada desde una especificación OpenAPI, documentación del servidor MCP y sandbox. Se publican con la beta privada de la API, en Fase 2, en `/docs/api` y `/docs/mcp`, enlazadas desde el contrato conceptual.
 - Versión en inglés de la sección de inversionistas. Se evalúa cuando exista demanda.
 - Bloque de reclutamiento de operadores. Depende de la opinión laboral de `docs/08-legal.md`.
 - Automatización de CFDI. Después de 50 pedidos.
